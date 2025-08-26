@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Cloner Video Creator - With Canvas Recording</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            background: #1a1a1a;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .video-canvas {
+            width: 360px;
+            height: 640px;
+            background: #000;
+            border-radius: 20px;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 212, 255, 0.3);
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+        }
+        .controls {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .button {
+            background: #00D4FF;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .button:hover {
+            background: #00b8e6;
+        }
+        .button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .recording-status {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+        .status-recording {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+        }
+        .status-ready {
+            background: rgba(68, 255, 68, 0.2);
+            color: #44ff44;
+        }
+        .status-processing {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+        }
+        .progress-container {
+            width: 100%;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(45deg, #00D4FF, #0099cc);
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+        .scene-info {
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .download-section {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 App Cloner Video Creator</h1>
+        <p>Generates and records actual video content with animations</p>
+        
+        <div class="video-canvas">
+            <canvas id="videoCanvas" width="360" height="640"></canvas>
+        </div>
+        
+        <div class="recording-status status-ready" id="recordingStatus">
+            Ready to create video
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div class="scene-info" id="sceneInfo">
+            Current Scene: Ready to start
+        </div>
+        
+        <div class="controls">
+            <button class="button" onclick="startVideoCreation()" id="createBtn">🎬 Create Full Video</button>
+            <button class="button" onclick="previewAnimation()" id="previewBtn">👀 Preview Animation</button>
+            <button class="button" onclick="stopCreation()" id="stopBtn" disabled>⏹️ Stop</button>
+        </div>
+        
+        <div class="download-section">
+            <h3>💾 Download Options</h3>
+            <button class="button" onclick="downloadVideo()" id="downloadBtn" disabled>📥 Download MP4 Video</button>
+            <button class="button" onclick="downloadGIF()" id="downloadGifBtn" disabled>📥 Download GIF</button>
+            <p id="downloadInfo">Create video first to enable downloads</p>
+        </div>
+        
+        <div class="controls">
+            <h3>🎨 Customization</h3>
+            <label>Background Color: <input type="color" value="#000000" id="bgColor" onchange="updateSettings()"></label>
+            <label>Accent Color: <input type="color" value="#00D4FF" id="accentColor" onchange="updateSettings()"></label>
+            <label>Animation Speed: <input type="range" min="0.5" max="2" step="0.1" value="1" id="speedSlider" onchange="updateSettings()"></label>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('videoCanvas');
+        const ctx = canvas.getContext('2d');
+        let isCreating = false;
+        let animationFrame;
+        let mediaRecorder;
+        let recordedChunks = [];
+        let currentScene = 0;
+        let startTime = 0;
+        let settings = {
+            backgroundColor: '#000000',
+            accentColor: '#00D4FF',
+            animationSpeed: 1
+        };
+
+        const scenes = [
+            { 
+                duration: 3000, 
+                title: "Hook - 47 Seconds",
+                content: { main: "47", sub: "I just cloned Uber's entire app\nin 47 seconds 🚀" }
+            },
+            { 
+                duration: 5000, 
+                title: "One Click Demo",
+                content: { main: "ONE CLICK", sub: "Watch this—one click duplicates\nANY app's complete architecture" }
+            },
+            { 
+                duration: 7000, 
+                title: "AI Technology",
+                content: { main: "AI-POWERED", sub: "App Cloner uses AI to extract,\nanalyze, and rebuild mobile apps instantly" }
+            },
+            { 
+                duration: 7000, 
+                title: "Source Code",
+                content: { main: "FULL SOURCE", sub: "Full source code. Every screen.\nEvery function. Ready to customize ⚡" }
+            },
+            { 
+                duration: 8000, 
+                title: "Social Proof",
+                content: { main: "12,000+", sub: "Over 12,000 apps cloned this week.\nFrom dating apps to delivery platforms" }
+            },
+            { 
+                duration: 10000, 
+                title: "Call to Action",
+                content: { main: "START FREE", sub: "Start cloning now. Link on screen.\nFirst app free ✅\n\nappcloner.io" }
+            }
+        ];
+
+        function updateSettings() {
+            settings.backgroundColor = document.getElementById('bgColor').value;
+            settings.accentColor = document.getElementById('accentColor').value;
+            settings.animationSpeed = parseFloat(document.getElementById('speedSlider').value);
+        }
+
+        function drawScene(sceneIndex, progress) {
+            const scene = scenes[sceneIndex];
+            ctx.fillStyle = settings.backgroundColor;
+            ctx.fillRect(0, 0, 360, 640);
+
+            // Draw particles
+            drawParticles(progress);
+
+            // Draw logo
+            ctx.fillStyle = settings.accentColor;
+            ctx.fillRect(20, 20, 40, 40);
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('AC', 40, 40);
+
+            // Draw main content
+            ctx.fillStyle = settings.accentColor;
+            ctx.font = sceneIndex === 0 ? 'bold 72px Courier New' : 'bold 42px Arial';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = settings.accentColor;
+            ctx.shadowBlur = 20;
+            
+            const mainY = sceneIndex === 0 ? 320 : 280;
+            ctx.fillText(scene.content.main, 180, mainY);
+            
+            // Draw subtitle
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.font = '16px Arial';
+            
+            const lines = scene.content.sub.split('\n');
+            lines.forEach((line, i) => {
+                ctx.fillText(line, 180, mainY + 60 + (i * 22));
+            });
+
+            // Animate timer for first scene
+            if (sceneIndex === 0) {
+                const timerValue = Math.max(0, 47 - Math.floor(progress * 47));
+                ctx.fillStyle = settings.accentColor;
+                ctx.font = 'bold 72px Courier New';
+                ctx.fillText(timerValue.toString(), 180, 320);
+            }
+
+            // Draw progress bar
+            ctx.fillStyle = settings.accentColor;
+            ctx.fillRect(0, 636, 360 * progress, 4);
+
+            // Add glow effect for main text
+            if (Math.sin(Date.now() * 0.005) > 0) {
+                ctx.shadowBlur = 30;
+                ctx.shadowColor = settings.accentColor;
+            }
+        }
+
+        function drawParticles(progress) {
+            const particleCount = 20;
+            for (let i = 0; i < particleCount; i++) {
+                const x = (Math.sin(Date.now() * 0.001 + i) + 1) * 180;
+                const y = (progress * 640 + i * 32) % 640;
+                
+                ctx.fillStyle = `rgba(0, 212, 255, ${0.3 + Math.sin(Date.now() * 0.002 + i) * 0.2})`;
+                ctx.beginPath();
+                ctx.arc(x, y, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function animate() {
+            if (!isCreating) return;
+
+            const elapsed = Date.now() - startTime;
+            let totalElapsed = 0;
+            let currentSceneIndex = 0;
+
+            // Find current scene
+            for (let i = 0; i < scenes.length; i++) {
+                if (elapsed < totalElapsed + scenes[i].duration / settings.animationSpeed) {
+                    currentSceneIndex = i;
+                    break;
+                }
+                totalElapsed += scenes[i].duration / settings.animationSpeed;
+            }
+
+            const sceneElapsed = elapsed - totalElapsed;
+            const sceneProgress = Math.min(sceneElapsed / (scenes[currentSceneIndex].duration / settings.animationSpeed), 1);
+            
+            // Update UI
+            const totalDuration = scenes.reduce((sum, scene) => sum + scene.duration, 0) / settings.animationSpeed;
+            const overallProgress = Math.min(elapsed / totalDuration, 1);
+            
+            document.getElementById('progressBar').style.width = (overallProgress * 100) + '%';
+            document.getElementById('sceneInfo').textContent = 
+                `Scene ${currentSceneIndex + 1}: ${scenes[currentSceneIndex].title} (${Math.round(sceneProgress * 100)}%)`;
+
+            // Draw current scene
+            drawScene(currentSceneIndex, sceneProgress);
+
+            // Check if animation complete
+            if (overallProgress >= 1) {
+                stopCreation();
+                return;
+            }
+
+            animationFrame = requestAnimationFrame(animate);
+        }
+
+        async function startVideoCreation() {
+            isCreating = true;
+            recordedChunks = [];
+            
+            document.getElementById('createBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('recordingStatus').className = 'recording-status status-recording';
+            document.getElementById('recordingStatus').textContent = 'Creating video...';
+
+            try {
+                const stream = canvas.captureStream(30); // 30 FPS
+                mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: 'video/webm;codecs=vp9'
+                });
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    document.getElementById('recordingStatus').className = 'recording-status status-ready';
+                    document.getElementById('recordingStatus').textContent = 'Video created successfully!';
+                    document.getElementById('downloadBtn').disabled = false;
+                    document.getElementById('downloadGifBtn').disabled = false;
+                    document.getElementById('downloadInfo').textContent = 'Video ready for download!';
+                };
+
+                mediaRecorder.start();
+                startTime = Date.now();
+                animate();
+
+            } catch (error) {
+                console.error('Error creating video:', error);
+                document.getElementById('recordingStatus').textContent = 'Error creating video. Try preview mode instead.';
+                stopCreation();
+            }
+        }
+
+        function previewAnimation() {
+            if (isCreating) return;
+            
+            isCreating = true;
+            document.getElementById('previewBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('recordingStatus').textContent = 'Preview mode - no recording';
+            
+            startTime = Date.now();
+            animate();
+        }
+
+        function stopCreation() {
+            isCreating = false;
+            cancelAnimationFrame(animationFrame);
+            
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+            
+            document.getElementById('createBtn').disabled = false;
+            document.getElementById('previewBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('sceneInfo').textContent = 'Animation stopped';
+        }
+
+        function downloadVideo() {
+            if (recordedChunks.length === 0) return;
+
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'app-cloner-promo-video.webm';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadGIF() {
+            // This would require additional libraries for GIF creation
+            // For now, we'll download the video and suggest conversion
+            downloadVideo();
+            alert('Video downloaded! Use online tools like ezgif.com to convert WebM to GIF if needed.');
+        }
+
+        // Initialize canvas
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, 360, 640);
+        ctx.fillStyle = '#00D4FF';
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('App Cloner Video Creator', 180, 320);
+        ctx.font = '16px Arial';
+        ctx.fillText('Click "Create Full Video" to start', 180, 350);
+    </script>
+</body>
+</html>
