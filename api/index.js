@@ -240,5 +240,149 @@ Format as JSON array with one prompt per scene.`;
   }
 });
 
+// Stock Media Library Management Endpoints
+app.post('/api/stock/search', async (req, res) => {
+  try {
+    const { query, type = 'image', page = 1, limit = 20 } = req.body;
+    
+    // Initialize stock content service if not already done
+    if (!global.stockContentService) {
+      const { StockContentService } = require('../lib/stock-content');
+      global.stockContentService = new StockContentService();
+    }
+    
+    const results = await global.stockContentService.search({
+      query,
+      type,
+      page,
+      limit
+    });
+    
+    res.json({ success: true, ...results });
+  } catch (error) {
+    console.error('Stock media search error:', error);
+    res.status(500).json({ error: error.message || 'Failed to search stock media' });
+  }
+});
+
+app.get('/api/stock/trending', async (req, res) => {
+  try {
+    const { type = 'image' } = req.query;
+    
+    if (!global.stockContentService) {
+      const { StockContentService } = require('../lib/stock-content');
+      global.stockContentService = new StockContentService();
+    }
+    
+    const results = await global.stockContentService.getTrending(type);
+    
+    res.json({ success: true, ...results });
+  } catch (error) {
+    console.error('Trending stock media error:', error);
+    res.status(500).json({ error: error.message || 'Failed to get trending media' });
+  }
+});
+
+app.post('/api/library/add', async (req, res) => {
+  try {
+    const { mediaItem, tags = [], category = 'other', notes = '' } = req.body;
+    
+    if (!global.stockContentService) {
+      const { StockContentService } = require('../lib/stock-content');
+      global.stockContentService = new StockContentService();
+    }
+    
+    const result = await global.stockContentService.addToLibrary(mediaItem, tags, category, notes);
+    
+    res.json({ success: true, libraryItem: result });
+  } catch (error) {
+    console.error('Add to library error:', error);
+    res.status(500).json({ error: error.message || 'Failed to add to library' });
+  }
+});
+
+app.get('/api/library/media', async (req, res) => {
+  try {
+    const { type, category, provider, tags, limit = 50, offset = 0 } = req.query;
+    
+    const filters = {};
+    if (type) filters.type = type;
+    if (category) filters.category = category;
+    if (provider) filters.provider = provider;
+    if (tags) filters.tags = Array.isArray(tags) ? tags : tags.split(',');
+    if (limit) filters.limit = parseInt(limit);
+    if (offset) filters.offset = parseInt(offset);
+    
+    if (!global.stockContentService) {
+      const { StockContentService } = require('../lib/stock-content');
+      global.stockContentService = new StockContentService();
+    }
+    
+    const results = await global.stockContentService.getLibraryMedia(filters);
+    
+    res.json({ success: true, results });
+  } catch (error) {
+    console.error('Get library media error:', error);
+    res.status(500).json({ error: error.message || 'Failed to get library media' });
+  }
+});
+
+app.delete('/api/library/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!global.stockContentService) {
+      const { StockContentService } = require('../lib/stock-content');
+      global.stockContentService = new StockContentService();
+    }
+    
+    const result = await global.stockContentService.removeFromLibrary(id);
+    
+    res.json({ success: result.success });
+  } catch (error) {
+    console.error('Remove from library error:', error);
+    res.status(500).json({ error: error.message || 'Failed to remove from library' });
+  }
+});
+
+app.put('/api/library/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { tags, category, notes } = req.body;
+    
+    if (!global.stockContentService) {
+      const { StockContentService } = require('../lib/stock-content');
+      global.stockContentService = new StockContentService();
+    }
+    
+    const result = await global.stockContentService.updateLibraryItem(id, {
+      tags,
+      category,
+      notes
+    });
+    
+    res.json({ success: result.success });
+  } catch (error) {
+    console.error('Update library item error:', error);
+    res.status(500).json({ error: error.message || 'Failed to update library item' });
+  }
+});
+
+app.get('/api/library/stats', async (req, res) => {
+  try {
+    if (!global.stockContentService) {
+      const { StockContentService } = require('../lib/stock-content');
+      global.stockContentService = new StockContentService();
+    }
+    
+    const stats = await global.stockContentService.getLibraryStats();
+    
+    res.json({ success: true, stats });
+  } catch (error) {
+    console.error('Get library stats error:', error);
+    res.status(500).json({ error: error.message || 'Failed to get library stats' });
+  }
+});
+
 // Export for Vercel
 module.exports = app;

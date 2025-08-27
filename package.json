@@ -6,11 +6,13 @@
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
-    "build": "echo 'No build step required'",
+    "build": "cd mcp-server && npm install && npm run build",
     "lint": "npx eslint *.js lib/*.js --fix",
-    "vercel-build": "echo 'Build completed for Vercel'",
+    "vercel-build": "cd mcp-server && npm install && npm run build && echo 'Build completed for Vercel'",
     "install-deps": "npm install",
-    "test": "echo 'Tests not configured yet'"
+    "test": "echo 'Tests not configured yet'",
+    "mcp-server": "cd mcp-server && npm run dev",
+    "build-mcp": "cd mcp-server && npm run build"
   },
   "dependencies": {
     "express": "^4.18.2",
