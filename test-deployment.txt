@@ -1,0 +1,13 @@
+Test deployment trigger - $(date)
+
+This file is created to test the GitHub Actions deployment workflow.
+
+Deployment features being tested:
+- Automatic Vercel deployment on push to main
+- ESLint checks before deployment  
+- GitHub Actions workflow execution
+- Production deployment to Vercel
+
+Test timestamp: 2025-08-27
+
+If you see this deployed to Vercel, the automation is working! ✅
