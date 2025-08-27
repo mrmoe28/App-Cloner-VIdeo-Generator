@@ -1,0 +1,267 @@
+#!/usr/bin/env python3
+"""
+Quick Video Creation Script for App Cloner
+Generates a simple HTML/CSS animated version as a proof of concept
+"""
+
+import os
+from datetime import datetime
+
+def create_html_video_demo():
+    """Create an HTML/CSS animated demo of the video concept"""
+    
+    html_content = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Cloner Video Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        .video-container {
+            width: 360px;
+            height: 640px;
+            margin: 50px auto;
+            position: relative;
+            background: #000;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 212, 255, 0.3);
+        }
+        
+        .scene {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(50px);
+            animation: fadeInOut 6s ease-in-out infinite;
+        }
+        
+        .scene:nth-child(1) { animation-delay: 0s; }
+        .scene:nth-child(2) { animation-delay: 6s; }
+        .scene:nth-child(3) { animation-delay: 12s; }
+        .scene:nth-child(4) { animation-delay: 18s; }
+        .scene:nth-child(5) { animation-delay: 24s; }
+        
+        .big-text {
+            font-size: 48px;
+            font-weight: 900;
+            color: #00D4FF;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 280px;
+            line-height: 1.4;
+        }
+        
+        .timer {
+            font-size: 72px;
+            font-weight: 900;
+            color: #00D4FF;
+            font-family: 'Courier New', monospace;
+            animation: countdown 3s linear infinite;
+        }
+        
+        .logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            background: #00D4FF;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: #000;
+        }
+        
+        .cta {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #00D4FF;
+            color: #000;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-weight: 700;
+            text-decoration: none;
+            animation: pulse 2s infinite;
+        }
+        
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: #00D4FF;
+            animation: progress 30s linear infinite;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(50px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-50px); }
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(0, 212, 255, 0.5); }
+            to { text-shadow: 0 0 30px rgba(0, 212, 255, 0.8); }
+        }
+        
+        @keyframes countdown {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.05); }
+            100% { transform: translateX(-50%) scale(1); }
+        }
+        
+        @keyframes progress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #00D4FF;
+            animation: float 4s linear infinite;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) translateX(100px); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="video-container">
+        <div class="logo">AC</div>
+        
+        <div class="particles" id="particles"></div>
+        
+        <div class="scene">
+            <div class="timer" id="timer">47</div>
+            <div class="subtitle">I just cloned Uber's entire app in 47 seconds</div>
+        </div>
+        
+        <div class="scene">
+            <div class="big-text">ONE CLICK</div>
+            <div class="subtitle">Watch this—one click duplicates ANY app's complete architecture</div>
+        </div>
+        
+        <div class="scene">
+            <div class="big-text">AI-POWERED</div>
+            <div class="subtitle">App Cloner uses AI to extract, analyze, and rebuild mobile apps instantly</div>
+        </div>
+        
+        <div class="scene">
+            <div class="big-text">FULL SOURCE</div>
+            <div class="subtitle">Full source code. Every screen. Every function. Ready to customize</div>
+        </div>
+        
+        <div class="scene">
+            <div class="big-text">START FREE</div>
+            <div class="subtitle">Start cloning now. First app free.</div>
+            <a href="https://appcloner.io/start" class="cta">Get Started</a>
+        </div>
+        
+        <div class="progress-bar"></div>
+    </div>
+    
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 4 + 's';
+                particle.style.animationDuration = (4 + Math.random() * 2) + 's';
+                container.appendChild(particle);
+            }
+        }
+        
+        // Countdown timer animation
+        function animateTimer() {
+            const timer = document.getElementById('timer');
+            let count = 47;
+            const interval = setInterval(() => {
+                count--;
+                timer.textContent = count;
+                if (count <= 0) {
+                    clearInterval(interval);
+                    timer.textContent = '0';
+                    setTimeout(() => {
+                        count = 47;
+                        timer.textContent = count;
+                        animateTimer();
+                    }, 24000); // Reset after full cycle
+                }
+            }, 60);
+        }
+        
+        // Initialize
+        createParticles();
+        animateTimer();
+    </script>
+</body>
+</html>
+    """
+    
+    # Write HTML file
+    with open('video_demo.html', 'w') as f:
+        f.write(html_content)
+    
+    print("✅ HTML video demo created: video_demo.html")
+    print("🌐 Open in browser to see animated concept")
+
+if __name__ == "__main__":
+    create_html_video_demo()

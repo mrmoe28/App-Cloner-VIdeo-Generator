@@ -1,0 +1,56 @@
+QUICK START GUIDE - App Cloner Video Generator
+=============================================
+
+🎬 CREATE YOUR VIDEO IN 3 STEPS:
+
+STEP 1: OPEN THE GENERATOR
+--------------------------
+• Double-click "video_generator.html"
+• Opens in your default browser
+• Works best in Chrome or Firefox
+
+STEP 2: RECORD YOUR VIDEO
+-------------------------
+• Click "🔴 Start Recording"
+• Allow screen recording permission
+• Click "▶️ Play Video" 
+• Watch the 45-second animation complete
+• Click "⏹️ Stop Recording"
+
+STEP 3: DOWNLOAD & USE
+----------------------
+• Click "💾 Download Video"
+• Saves as "app-cloner-video-concept.webm"
+• Use this as your base footage!
+
+🔧 WHAT YOU GET:
+================
+✓ Animated 45-second video concept
+✓ Professional App Cloner branding
+✓ Mobile-optimized 9:16 format
+✓ Smooth scene transitions
+✓ Brand colors and styling
+✓ Ready for post-production
+
+🎯 NEXT STEPS:
+==============
+1. Add voiceover using provided scripts
+2. Enhance with AI clips and effects  
+3. Include music and sound effects
+4. Export final version for social media
+
+💡 PRO TIP:
+===========
+Record multiple versions:
+• Different timing
+• Various text options
+• Multiple camera angles
+• A/B test variations
+
+🚀 READY TO GO!
+===============
+Everything you need is in this folder.
+No installation or setup required.
+Works completely offline.
+
+Questions? Check the README.md file!

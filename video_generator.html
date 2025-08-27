@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Cloner Video Generator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            background: #1a1a1a;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .video-preview {
+            width: 360px;
+            height: 640px;
+            background: #000;
+            border-radius: 20px;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 212, 255, 0.3);
+        }
+        .controls {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .button {
+            background: #00D4FF;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #00b8e6;
+        }
+        .scene {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .scene.active {
+            opacity: 1;
+        }
+        .big-text {
+            font-size: 42px;
+            font-weight: 900;
+            color: #00D4FF;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+        .subtitle {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.4;
+            max-width: 300px;
+        }
+        .progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: #00D4FF;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        .timer-display {
+            font-size: 72px;
+            font-family: 'Courier New', monospace;
+            color: #00D4FF;
+            font-weight: 900;
+        }
+        .logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            background: #00D4FF;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #000;
+        }
+        .recording-controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .recording-status {
+            margin: 10px 0;
+            font-weight: 600;
+        }
+        .recording-status.recording {
+            color: #ff4444;
+        }
+        .recording-status.ready {
+            color: #44ff44;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 App Cloner Video Generator</h1>
+        <p>Interactive video concept with screen recording capability</p>
+        
+        <div class="video-preview" id="videoPreview">
+            <div class="logo">AC</div>
+            
+            <div class="scene active" id="scene1">
+                <div class="timer-display" id="timerDisplay">47</div>
+                <div class="subtitle">I just cloned Uber's entire app in 47 seconds 🚀</div>
+            </div>
+            
+            <div class="scene" id="scene2">
+                <div class="big-text">ONE CLICK</div>
+                <div class="subtitle">Watch this—one click duplicates ANY app's complete architecture</div>
+            </div>
+            
+            <div class="scene" id="scene3">
+                <div class="big-text">AI-POWERED</div>
+                <div class="subtitle">App Cloner uses AI to extract, analyze, and rebuild mobile apps instantly</div>
+            </div>
+            
+            <div class="scene" id="scene4">
+                <div class="big-text">FULL SOURCE</div>
+                <div class="subtitle">Full source code. Every screen. Every function. Ready to customize ⚡</div>
+            </div>
+            
+            <div class="scene" id="scene5">
+                <div class="big-text">12,000+ APPS</div>
+                <div class="subtitle">Over 12,000 apps cloned this week. From dating apps to delivery platforms</div>
+            </div>
+            
+            <div class="scene" id="scene6">
+                <div class="big-text">START FREE</div>
+                <div class="subtitle">Start cloning now. Link on screen. First app free ✅<br><br>appcloner.io</div>
+            </div>
+            
+            <div class="progress" id="progress"></div>
+        </div>
+        
+        <div class="controls">
+            <h3>🎮 Video Controls</h3>
+            <button class="button" onclick="playVideo()">▶️ Play Video</button>
+            <button class="button" onclick="pauseVideo()">⏸️ Pause</button>
+            <button class="button" onclick="resetVideo()">🔄 Reset</button>
+            <button class="button" onclick="nextScene()">⏭️ Next Scene</button>
+        </div>
+        
+        <div class="recording-controls">
+            <h3>📹 Screen Recording</h3>
+            <div class="recording-status" id="recordingStatus">Ready to record</div>
+            <button class="button" onclick="startRecording()" id="recordBtn">🔴 Start Recording</button>
+            <button class="button" onclick="stopRecording()" id="stopBtn" disabled>⏹️ Stop Recording</button>
+            <button class="button" onclick="downloadVideo()" id="downloadBtn" disabled>💾 Download Video</button>
+        </div>
+        
+        <div class="controls">
+            <h3>📋 Next Steps</h3>
+            <p>1. Click "Start Recording" to capture this animated concept</p>
+            <p>2. Use the recording as a base for your video editor</p>
+            <p>3. Add voiceover using the provided script files</p>
+            <p>4. Enhance with AI-generated clips and effects</p>
+            <p>5. Export using the FFmpeg scripts provided</p>
+        </div>
+    </div>
+
+    <script>
+        let currentScene = 1;
+        let isPlaying = false;
+        let playInterval;
+        let mediaRecorder;
+        let recordedChunks = [];
+        
+        const scenes = [
+            { duration: 8000, text: "Hook: 47 seconds claim" },
+            { duration: 5000, text: "One click demo" },
+            { duration: 7000, text: "AI technology explanation" },
+            { duration: 7000, text: "Full source code reveal" },
+            { duration: 8000, text: "Social proof" },
+            { duration: 10000, text: "Call to action" }
+        ];
+        
+        function showScene(sceneNum) {
+            document.querySelectorAll('.scene').forEach(scene => {
+                scene.classList.remove('active');
+            });
+            document.getElementById(`scene${sceneNum}`).classList.add('active');
+            currentScene = sceneNum;
+        }
+        
+        function nextScene() {
+            if (currentScene < 6) {
+                showScene(currentScene + 1);
+            } else {
+                showScene(1);
+            }
+        }
+        
+        function playVideo() {
+            if (isPlaying) return;
+            
+            isPlaying = true;
+            let totalDuration = 45000; // 45 seconds total
+            let startTime = Date.now();
+            let sceneStartTime = startTime;
+            let currentSceneIndex = 0;
+            
+            // Timer countdown for first scene
+            if (currentScene === 1) {
+                animateTimer();
+            }
+            
+            playInterval = setInterval(() => {
+                let elapsed = Date.now() - startTime;
+                let progress = (elapsed / totalDuration) * 100;
+                document.getElementById('progress').style.width = progress + '%';
+                
+                // Scene transitions
+                if (elapsed - (sceneStartTime - startTime) >= scenes[currentSceneIndex].duration) {
+                    currentSceneIndex++;
+                    if (currentSceneIndex < scenes.length) {
+                        showScene(currentSceneIndex + 1);
+                        sceneStartTime = Date.now();
+                    }
+                }
+                
+                if (elapsed >= totalDuration) {
+                    clearInterval(playInterval);
+                    isPlaying = false;
+                    document.getElementById('progress').style.width = '0%';
+                    showScene(1);
+                }
+            }, 100);
+        }
+        
+        function pauseVideo() {
+            clearInterval(playInterval);
+            isPlaying = false;
+        }
+        
+        function resetVideo() {
+            clearInterval(playInterval);
+            isPlaying = false;
+            showScene(1);
+            document.getElementById('progress').style.width = '0%';
+        }
+        
+        function animateTimer() {
+            let count = 47;
+            let timerElement = document.getElementById('timerDisplay');
+            let timerInterval = setInterval(() => {
+                count--;
+                timerElement.textContent = count;
+                if (count <= 0 || currentScene !== 1) {
+                    clearInterval(timerInterval);
+                }
+            }, 100);
+        }
+        
+        // Screen Recording Functions
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: { mediaSource: 'screen' }
+                });
+                
+                mediaRecorder = new MediaRecorder(stream);
+                recordedChunks = [];
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = () => {
+                    document.getElementById('recordingStatus').textContent = 'Recording completed!';
+                    document.getElementById('recordingStatus').className = 'recording-status ready';
+                    document.getElementById('downloadBtn').disabled = false;
+                };
+                
+                mediaRecorder.start();
+                document.getElementById('recordingStatus').textContent = 'Recording in progress...';
+                document.getElementById('recordingStatus').className = 'recording-status recording';
+                document.getElementById('recordBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                
+                // Auto-play the video when recording starts
+                setTimeout(() => playVideo(), 1000);
+                
+            } catch (err) {
+                console.error('Error starting recording:', err);
+                alert('Screen recording not supported in this browser. Try Chrome or Firefox.');
+            }
+        }
+        
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                document.getElementById('recordBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+            }
+        }
+        
+        function downloadVideo() {
+            if (recordedChunks.length === 0) return;
+            
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'app-cloner-video-concept.webm';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
