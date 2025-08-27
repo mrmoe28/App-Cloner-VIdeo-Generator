@@ -8,6 +8,12 @@ Deployment features being tested:
 - GitHub Actions workflow execution
 - Production deployment to Vercel
 
-Test timestamp: 2025-08-27
+Test timestamp: 2025-08-27 - Updated with drag & drop file upload functionality
 
 If you see this deployed to Vercel, the automation is working! ✅
+
+Latest updates deployed:
+- Complete video generation workflow with timeline and saved videos
+- Drag and drop file upload functionality
+- Stock media integration via MCP server
+- Professional UI with multiple workflow tabs
