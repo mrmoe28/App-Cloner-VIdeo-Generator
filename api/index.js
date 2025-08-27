@@ -174,6 +174,178 @@ app.post('/api/ai/generate-script', async (req, res) => {
   }
 });
 
+// AI Script Improvement
+app.post('/api/ai/improve-script', async (req, res) => {
+  try {
+    const { script, improvements = [], userId } = req.body;
+    
+    if (!script) {
+      return res.status(400).json({ error: 'Script is required' });
+    }
+    
+    // Get API key
+    let apiKey = process.env.OPENAI_API_KEY;
+    
+    if (!apiKey) {
+      const encryptedKey = userApiKeys.get(userId || 'default');
+      if (encryptedKey) {
+        apiKey = simpleDecrypt(encryptedKey);
+      }
+    }
+    
+    if (!apiKey) {
+      return res.status(400).json({ error: 'No OpenAI API key available' });
+    }
+    
+    // Initialize OpenAI
+    const OpenAI = require('openai');
+    const openai = new OpenAI({ apiKey });
+    
+    const improvementAreas = improvements.length > 0 
+      ? improvements.join(', ')
+      : 'engagement, clarity, call-to-action, pacing';
+    
+    const systemPrompt = `You are an expert video script editor specializing in improving short-form content for maximum engagement and conversion.
+    
+    Focus on these improvement areas: ${improvementAreas}
+    
+    Guidelines:
+    - Maintain the original message and intent
+    - Enhance hook strength and retention
+    - Improve flow and pacing
+    - Strengthen call-to-action
+    - Keep it concise and impactful
+    - Optimize for the target platform`;
+
+    const userPrompt = `Improve this video script focusing on ${improvementAreas}:
+
+${script}
+
+Return the improved script in the same JSON format if it's structured, or as improved text if it's plain text.`;
+    
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      max_tokens: 1500,
+      temperature: 0.7
+    });
+    
+    const improvedContent = completion.choices[0].message.content;
+    
+    // Try to parse as JSON, fallback to text
+    try {
+      const improvedScript = JSON.parse(improvedContent);
+      res.json({ success: true, script: improvedScript });
+    } catch (parseError) {
+      res.json({ 
+        success: true, 
+        script: improvedContent
+      });
+    }
+    
+  } catch (error) {
+    console.error('Error improving script:', error);
+    res.status(500).json({ error: error.message || 'Failed to improve script' });
+  }
+});
+
+// AI Visual Scene Prompts Generation
+app.post('/api/ai/generate-scene-prompts', async (req, res) => {
+  try {
+    const { script, userId } = req.body;
+    
+    if (!script) {
+      return res.status(400).json({ error: 'Script is required' });
+    }
+    
+    // Get API key
+    let apiKey = process.env.OPENAI_API_KEY;
+    
+    if (!apiKey) {
+      const encryptedKey = userApiKeys.get(userId || 'default');
+      if (encryptedKey) {
+        apiKey = simpleDecrypt(encryptedKey);
+      }
+    }
+    
+    if (!apiKey) {
+      return res.status(400).json({ error: 'No OpenAI API key available' });
+    }
+    
+    // Initialize OpenAI
+    const OpenAI = require('openai');
+    const openai = new OpenAI({ apiKey });
+    
+    const systemPrompt = `You are a visual director who creates detailed scene descriptions for video production. 
+    
+    For each scene in the script, create:
+    - Visual setting and environment
+    - Key visual elements and props
+    - Lighting and mood
+    - Camera angles and movement
+    - Color palette suggestions
+    - Visual metaphors or symbols
+    
+    Focus on creating engaging, cinematic visuals that support the message.`;
+
+    const userPrompt = `Create detailed visual scene prompts for this video script:
+
+${typeof script === 'object' ? JSON.stringify(script, null, 2) : script}
+
+Return as JSON array with this structure:
+[
+  {
+    "sceneNumber": 1,
+    "timeRange": "0-5s",
+    "visualPrompt": "Detailed visual description...",
+    "searchKeywords": "keyword1, keyword2, keyword3",
+    "mood": "professional, energetic",
+    "cameraAngle": "close-up, wide shot, etc."
+  }
+]`;
+    
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      max_tokens: 2000,
+      temperature: 0.8
+    });
+    
+    const visualContent = completion.choices[0].message.content;
+    
+    try {
+      const prompts = JSON.parse(visualContent);
+      res.json({ success: true, prompts });
+    } catch (parseError) {
+      // Fallback: create simple prompts from script
+      const fallbackPrompts = [{
+        sceneNumber: 1,
+        timeRange: "0-60s",
+        visualPrompt: "Professional business setting with modern technology elements, clean and engaging visuals that support the message",
+        searchKeywords: "business, technology, professional, modern",
+        mood: "professional, engaging",
+        cameraAngle: "medium shot"
+      }];
+      
+      res.json({ 
+        success: true, 
+        prompts: fallbackPrompts,
+        note: "Generated fallback prompts due to parsing issues"
+      });
+    }
+    
+  } catch (error) {
+    console.error('Error generating visual prompts:', error);
+    res.status(500).json({ error: error.message || 'Failed to generate visual prompts' });
+  }
+});
+
 // AI Visual Generation
 app.post('/api/ai/generate-visuals', async (req, res) => {
   try {
