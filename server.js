@@ -92,9 +92,40 @@ app.get('/api/health', (req, res) => {
 });
 
 // OpenAI API Key Management
+// Check if API key is configured
+app.get('/api/openai/check', async (req, res) => {
+  try {
+    const hasEnvKey = !!process.env.OPENAI_API_KEY;
+    const { userId } = req.query;
+    
+    let hasUserKey = false;
+    if (userId && database) {
+      hasUserKey = !!(await database.getUserApiKey(userId || 'default'));
+    }
+    
+    res.json({ 
+      configured: hasEnvKey || hasUserKey,
+      useEnvKey: hasEnvKey,
+      requiresUserKey: !hasEnvKey
+    });
+  } catch (error) {
+    console.error('Error checking API key:', error);
+    res.status(500).json({ error: 'Failed to check API key status' });
+  }
+});
+
 app.post('/api/openai/setup', async (req, res) => {
   try {
     const { apiKey, userId } = req.body;
+    
+    // If environment variable is set, no need for user key
+    if (process.env.OPENAI_API_KEY) {
+      return res.json({ 
+        success: true, 
+        message: 'Using server-configured OpenAI API key',
+        keyId: 'server'
+      });
+    }
     
     if (!apiKey) {
       return res.status(400).json({ error: 'API key is required' });

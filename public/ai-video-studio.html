@@ -643,6 +643,7 @@
         class AIVideoStudio {
             constructor() {
                 this.apiKey = null;
+                this.apiConfigured = false;
                 this.currentVideo = null;
                 this.canvas = document.getElementById('videoCanvas');
                 this.ctx = this.canvas.getContext('2d');
@@ -651,11 +652,15 @@
                 this.initializeEventListeners();
                 this.initializeCanvas();
                 this.checkServerStatus();
+                this.checkApiConfiguration();
             }
 
             initializeEventListeners() {
                 // API Setup
-                document.getElementById('setupApiBtn').addEventListener('click', () => this.setupAPI());
+                const setupBtn = document.getElementById('setupApiBtn');
+                if (setupBtn) {
+                    setupBtn.addEventListener('click', () => this.setupAPI());
+                }
                 
                 // Tabs
                 document.querySelectorAll('.tab').forEach(tab => {
@@ -726,8 +731,45 @@
                 }
             }
 
+            async checkApiConfiguration() {
+                try {
+                    const response = await fetch('/api/openai/check');
+                    const data = await response.json();
+                    
+                    if (data.configured) {
+                        this.apiConfigured = true;
+                        this.apiKey = 'configured';
+                        
+                        // Hide API input and show configured status
+                        const apiSetup = document.querySelector('.api-setup');
+                        if (data.useEnvKey) {
+                            apiSetup.innerHTML = `
+                                <div class="status-indicator status-ready" id="apiStatus">
+                                    ✅ AI Ready (Server Configured)
+                                </div>
+                            `;
+                        } else {
+                            apiSetup.innerHTML = `
+                                <div class="status-indicator status-ready" id="apiStatus">
+                                    ✅ AI Ready
+                                </div>
+                                <button class="btn btn-secondary" onclick="location.reload()">Reset API Key</button>
+                            `;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to check API configuration:', error);
+                }
+            }
+
             async setupAPI() {
-                const apiKey = document.getElementById('apiKeyInput').value.trim();
+                const apiKeyInput = document.getElementById('apiKeyInput');
+                if (!apiKeyInput) {
+                    // API key input not available (already configured via env)
+                    return;
+                }
+                
+                const apiKey = apiKeyInput.value.trim();
                 if (!apiKey) {
                     this.showNotification('Please enter your OpenAI API key', 'error');
                     return;
@@ -745,10 +787,17 @@
                     const data = await response.json();
                     
                     if (data.success) {
-                        this.apiKey = apiKey;
+                        this.apiKey = data.keyId === 'server' ? 'configured' : apiKey;
+                        this.apiConfigured = true;
                         this.setUIState('apiStatus', 'ready');
                         this.showNotification('✅ OpenAI API setup successful!', 'success');
-                        document.getElementById('apiKeyInput').value = '';
+                        
+                        if (data.keyId === 'server') {
+                            // Server-configured key, update UI
+                            await this.checkApiConfiguration();
+                        } else {
+                            apiKeyInput.value = '';
+                        }
                     } else {
                         throw new Error(data.error || 'API setup failed');
                     }
