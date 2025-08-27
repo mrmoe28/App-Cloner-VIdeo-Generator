@@ -1565,17 +1565,40 @@
                 }
 
                 try {
-                    const response = await fetch(`/api/stock/search?query=${encodeURIComponent(query)}&type=${type}&limit=12`);
+                    document.getElementById('stockSearchBtn').disabled = true;
+                    document.getElementById('stockSearchBtn').textContent = '🔍 Searching...';
+                    
+                    const response = await fetch('/api/stock/search', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            query: query,
+                            type: type,
+                            limit: 12
+                        })
+                    });
+                    
                     const data = await response.json();
                     
-                    if (data.success) {
+                    if (data.success && data.results) {
                         this.displayStockContent(data.results);
-                        this.showNotification(`✅ Found ${data.results.results.length} ${type}s`, 'success');
+                        this.showNotification(`✅ Found ${data.results.length} ${type}s`, 'success');
                     } else {
-                        throw new Error(data.error || 'Search failed');
+                        throw new Error(data.error || 'No results found');
                     }
                 } catch (error) {
+                    console.error('Stock search error:', error);
                     this.showNotification(`❌ Search failed: ${error.message}`, 'error');
+                    document.getElementById('stockContentGrid').innerHTML = `
+                        <div style="text-align: center; color: #ff6b6b; padding: 40px; grid-column: 1 / -1;">
+                            ❌ Search failed: ${error.message}
+                        </div>
+                    `;
+                } finally {
+                    document.getElementById('stockSearchBtn').disabled = false;
+                    document.getElementById('stockSearchBtn').textContent = '🔍 Search';
                 }
             }
 
@@ -1583,7 +1606,16 @@
                 const grid = document.getElementById('stockContentGrid');
                 grid.innerHTML = '';
 
-                results.results.forEach(item => {
+                if (!results || results.length === 0) {
+                    grid.innerHTML = `
+                        <div style="text-align: center; color: #666; padding: 40px; grid-column: 1 / -1;">
+                            📹 No results found. Try different search terms.
+                        </div>
+                    `;
+                    return;
+                }
+
+                results.forEach(item => {
                     const stockItem = document.createElement('div');
                     stockItem.className = 'stock-item';
                     stockItem.innerHTML = `
