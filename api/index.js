@@ -384,5 +384,353 @@ app.get('/api/library/stats', async (req, res) => {
   }
 });
 
+// Video Generation Workflow Endpoints
+
+// Generate Video from Script
+app.post('/api/video/generate', async (req, res) => {
+  try {
+    const { script, options = {}, userId } = req.body;
+    
+    if (!script) {
+      return res.status(400).json({ error: 'Script is required' });
+    }
+    
+    // Initialize services
+    if (!global.stockContentService) {
+      const { StockContentService } = require('../lib/stock-content');
+      global.stockContentService = new StockContentService();
+    }
+    
+    if (!global.databaseService) {
+      const { DatabaseService } = require('../lib/database');
+      global.databaseService = new DatabaseService();
+    }
+    
+    if (!global.videoGeneratorService) {
+      const { VideoGeneratorService } = require('../lib/video-generator');
+      global.videoGeneratorService = new VideoGeneratorService(
+        global.stockContentService,
+        global.databaseService
+      );
+    }
+    
+    // Generate video
+    const videoData = await global.videoGeneratorService.generateVideo({
+      script,
+      options: {
+        ...options,
+        userId: userId || 'default'
+      }
+    });
+    
+    res.json({ 
+      success: true, 
+      video: videoData,
+      message: 'Video generated successfully'
+    });
+    
+  } catch (error) {
+    console.error('Video generation error:', error);
+    res.status(500).json({ error: error.message || 'Failed to generate video' });
+  }
+});
+
+// Get Video Generation Progress
+app.get('/api/video/progress/:videoId', async (req, res) => {
+  try {
+    const { videoId } = req.params;
+    
+    if (!global.databaseService) {
+      const { DatabaseService } = require('../lib/database');
+      global.databaseService = new DatabaseService();
+    }
+    
+    // Check processing job status
+    const job = await global.databaseService.getProcessingJob(videoId);
+    
+    if (!job) {
+      return res.status(404).json({ error: 'Video processing job not found' });
+    }
+    
+    res.json({ 
+      success: true, 
+      progress: {
+        status: job.status,
+        progress: job.progress,
+        errorMessage: job.error_message,
+        startedAt: job.started_at,
+        completedAt: job.completed_at
+      }
+    });
+    
+  } catch (error) {
+    console.error('Progress check error:', error);
+    res.status(500).json({ error: error.message || 'Failed to get progress' });
+  }
+});
+
+// Get Saved Videos
+app.get('/api/videos/saved', async (req, res) => {
+  try {
+    const { limit = 50, offset = 0, userId = 'default' } = req.query;
+    
+    if (!global.videoGeneratorService) {
+      const { StockContentService } = require('../lib/stock-content');
+      const { DatabaseService } = require('../lib/database');
+      const { VideoGeneratorService } = require('../lib/video-generator');
+      
+      global.stockContentService = new StockContentService();
+      global.databaseService = new DatabaseService();
+      global.videoGeneratorService = new VideoGeneratorService(
+        global.stockContentService,
+        global.databaseService
+      );
+    }
+    
+    const videos = await global.videoGeneratorService.getSavedVideos(
+      parseInt(limit), 
+      parseInt(offset)
+    );
+    
+    res.json({ 
+      success: true, 
+      videos,
+      count: videos.length
+    });
+    
+  } catch (error) {
+    console.error('Get saved videos error:', error);
+    res.status(500).json({ error: error.message || 'Failed to get saved videos' });
+  }
+});
+
+// Get Video Project Details
+app.get('/api/videos/:videoId', async (req, res) => {
+  try {
+    const { videoId } = req.params;
+    
+    if (!global.databaseService) {
+      const { DatabaseService } = require('../lib/database');
+      global.databaseService = new DatabaseService();
+    }
+    
+    const video = await global.databaseService.getVideoProject(videoId);
+    
+    if (!video) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+    
+    res.json({ 
+      success: true, 
+      video
+    });
+    
+  } catch (error) {
+    console.error('Get video project error:', error);
+    res.status(500).json({ error: error.message || 'Failed to get video project' });
+  }
+});
+
+// Delete Video Project
+app.delete('/api/videos/:videoId', async (req, res) => {
+  try {
+    const { videoId } = req.params;
+    
+    if (!global.videoGeneratorService) {
+      const { StockContentService } = require('../lib/stock-content');
+      const { DatabaseService } = require('../lib/database');
+      const { VideoGeneratorService } = require('../lib/video-generator');
+      
+      global.stockContentService = new StockContentService();
+      global.databaseService = new DatabaseService();
+      global.videoGeneratorService = new VideoGeneratorService(
+        global.stockContentService,
+        global.databaseService
+      );
+    }
+    
+    const deleted = await global.videoGeneratorService.deleteVideo(videoId);
+    
+    if (!deleted) {
+      return res.status(404).json({ error: 'Video not found or failed to delete' });
+    }
+    
+    res.json({ 
+      success: true, 
+      message: 'Video deleted successfully'
+    });
+    
+  } catch (error) {
+    console.error('Delete video error:', error);
+    res.status(500).json({ error: error.message || 'Failed to delete video' });
+  }
+});
+
+// Generate Captions for Script
+app.post('/api/video/captions', async (req, res) => {
+  try {
+    const { script } = req.body;
+    
+    if (!script) {
+      return res.status(400).json({ error: 'Script is required' });
+    }
+    
+    if (!global.videoGeneratorService) {
+      const { StockContentService } = require('../lib/stock-content');
+      const { DatabaseService } = require('../lib/database');
+      const { VideoGeneratorService } = require('../lib/video-generator');
+      
+      global.stockContentService = new StockContentService();
+      global.databaseService = new DatabaseService();
+      global.videoGeneratorService = new VideoGeneratorService(
+        global.stockContentService,
+        global.databaseService
+      );
+    }
+    
+    // Analyze script first
+    const sceneAnalysis = await global.videoGeneratorService.analyzeScript(script);
+    
+    // Generate captions
+    const captions = await global.videoGeneratorService.generateCaptions(sceneAnalysis);
+    
+    res.json({ 
+      success: true, 
+      captions,
+      sceneAnalysis
+    });
+    
+  } catch (error) {
+    console.error('Caption generation error:', error);
+    res.status(500).json({ error: error.message || 'Failed to generate captions' });
+  }
+});
+
+// Generate Visual Assets for Script Scenes
+app.post('/api/video/assets', async (req, res) => {
+  try {
+    const { script, sceneId } = req.body;
+    
+    if (!script) {
+      return res.status(400).json({ error: 'Script is required' });
+    }
+    
+    if (!global.stockContentService) {
+      const { StockContentService } = require('../lib/stock-content');
+      global.stockContentService = new StockContentService();
+    }
+    
+    if (!global.videoGeneratorService) {
+      const { DatabaseService } = require('../lib/database');
+      const { VideoGeneratorService } = require('../lib/video-generator');
+      
+      global.databaseService = new DatabaseService();
+      global.videoGeneratorService = new VideoGeneratorService(
+        global.stockContentService,
+        global.databaseService
+      );
+    }
+    
+    // Analyze script
+    const sceneAnalysis = await global.videoGeneratorService.analyzeScript(script);
+    
+    // Generate assets for specific scene or all scenes
+    let targetScenes = sceneAnalysis.scenes;
+    if (sceneId) {
+      targetScenes = sceneAnalysis.scenes.filter(scene => scene.id === sceneId);
+    }
+    
+    // Create temp directory for this request
+    const path = require('path');
+    const fs = require('fs-extra');
+    const { v4: uuidv4 } = require('uuid');
+    
+    const tempId = uuidv4();
+    const projectDir = path.join(process.cwd(), 'temp', 'video-gen', tempId);
+    fs.ensureDirSync(projectDir);
+    
+    try {
+      // Generate visual assets
+      const visualAssets = await global.videoGeneratorService.generateVisualAssets(
+        { ...sceneAnalysis, scenes: targetScenes },
+        projectDir
+      );
+      
+      res.json({ 
+        success: true, 
+        assets: visualAssets,
+        sceneAnalysis: { ...sceneAnalysis, scenes: targetScenes }
+      });
+      
+      // Clean up temp files after response
+      setTimeout(() => {
+        fs.removeSync(projectDir);
+      }, 30000); // 30 seconds
+      
+    } catch (assetError) {
+      // Clean up on error
+      fs.removeSync(projectDir);
+      throw assetError;
+    }
+    
+  } catch (error) {
+    console.error('Asset generation error:', error);
+    res.status(500).json({ error: error.message || 'Failed to generate visual assets' });
+  }
+});
+
+// Create Video Timeline
+app.post('/api/video/timeline', async (req, res) => {
+  try {
+    const { script, visualAssets, captions } = req.body;
+    
+    if (!script) {
+      return res.status(400).json({ error: 'Script is required' });
+    }
+    
+    if (!global.videoGeneratorService) {
+      const { StockContentService } = require('../lib/stock-content');
+      const { DatabaseService } = require('../lib/database');
+      const { VideoGeneratorService } = require('../lib/video-generator');
+      
+      global.stockContentService = new StockContentService();
+      global.databaseService = new DatabaseService();
+      global.videoGeneratorService = new VideoGeneratorService(
+        global.stockContentService,
+        global.databaseService
+      );
+    }
+    
+    // Analyze script
+    const sceneAnalysis = await global.videoGeneratorService.analyzeScript(script);
+    
+    // Generate captions if not provided
+    let captionData = captions;
+    if (!captionData) {
+      captionData = await global.videoGeneratorService.generateCaptions(sceneAnalysis);
+    }
+    
+    // Use provided visual assets or generate placeholders
+    let assetData = visualAssets || [];
+    
+    // Create timeline
+    const timeline = await global.videoGeneratorService.createTimeline(
+      sceneAnalysis,
+      assetData,
+      captionData
+    );
+    
+    res.json({ 
+      success: true, 
+      timeline,
+      sceneAnalysis
+    });
+    
+  } catch (error) {
+    console.error('Timeline creation error:', error);
+    res.status(500).json({ error: error.message || 'Failed to create timeline' });
+  }
+});
+
 // Export for Vercel
 module.exports = app;
