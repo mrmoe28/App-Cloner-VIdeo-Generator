@@ -64,4 +64,4 @@ temp-videos/
 # API Keys (extra security)
 keys/
 secrets/
-credentials/
+credentials/.env
