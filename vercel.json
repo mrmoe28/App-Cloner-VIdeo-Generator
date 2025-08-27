@@ -1,39 +1,37 @@
 {
   "version": 2,
   "name": "ai-video-studio",
-  "builds": [
+  "buildCommand": "npm run vercel-build",
+  "outputDirectory": ".",
+  "installCommand": "npm install",
+  "framework": null,
+  "rewrites": [
     {
-      "src": "api/index.js",
-      "use": "@vercel/node"
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/",
+      "destination": "/public/ai-video-studio.html"
+    },
+    {
+      "source": "/advanced-video-creator",
+      "destination": "/public/advanced_video_creator.html"
+    },
+    {
+      "source": "/video-generator",
+      "destination": "/public/video_generator.html"
+    },
+    {
+      "source": "/video-demo",
+      "destination": "/public/video_demo.html"
     }
   ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/(.*\\.(css|js|html|png|jpg|jpeg|gif|ico|svg|mp4|webm|avi))",
-      "dest": "/public/$1"
-    },
-    {
-      "src": "/",
-      "dest": "/public/ai-video-studio.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/api/index.js"
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  },
   "functions": {
     "api/index.js": {
       "maxDuration": 300
     }
   },
-  "regions": ["iad1"],
   "headers": [
     {
       "source": "/api/(.*)",
