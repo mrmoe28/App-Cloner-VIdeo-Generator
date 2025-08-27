@@ -1,34 +1,43 @@
 {
   "version": 2,
-  "functions": {
-    "api/index.js": {
-      "maxDuration": 30
+  "builds": [
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "public/**/*",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api"
+      "dest": "/api/index.js"
     },
     {
       "src": "/advanced-video-creator",
-      "dest": "/public/advanced_video_creator.html"
+      "dest": "/advanced_video_creator.html"
     },
     {
       "src": "/video-generator", 
-      "dest": "/public/video_generator.html"
+      "dest": "/video_generator.html"
     },
     {
       "src": "/video-demo",
-      "dest": "/public/video_demo.html"
+      "dest": "/video_demo.html"
     },
     {
       "src": "/ai-video-studio",
-      "dest": "/public/ai-video-studio.html"
+      "dest": "/ai-video-studio.html"
     },
     {
-      "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|ico|svg|mp4|webm|avi))",
-      "dest": "/public/$1"
+      "src": "/",
+      "dest": "/index.html"
     }
   ]
 }
