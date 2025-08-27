@@ -732,5 +732,200 @@ app.post('/api/video/timeline', async (req, res) => {
   }
 });
 
+// File Upload Endpoint
+app.post('/api/upload', async (req, res) => {
+  try {
+    const multer = require('multer');
+    const path = require('path');
+    const fs = require('fs-extra');
+    
+    // Configure multer for file uploads
+    const storage = multer.diskStorage({
+      destination: (req, file, cb) => {
+        const uploadDir = path.join(process.cwd(), 'uploads');
+        fs.ensureDirSync(uploadDir);
+        cb(null, uploadDir);
+      },
+      filename: (req, file, cb) => {
+        const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
+        cb(null, uniqueName);
+      }
+    });
+
+    const fileFilter = (req, file, cb) => {
+      const allowedTypes = /jpeg|jpg|png|gif|mp4|mov|avi|mp3|wav|m4a/;
+      const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+      const mimetype = allowedTypes.test(file.mimetype);
+
+      if (mimetype && extname) {
+        return cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only images, videos, and audio files are allowed.'));
+      }
+    };
+
+    const upload = multer({
+      storage: storage,
+      limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit
+      fileFilter: fileFilter
+    }).array('files', 10); // Max 10 files
+
+    upload(req, res, async (err) => {
+      if (err) {
+        console.error('Upload error:', err);
+        return res.status(400).json({ error: err.message || 'Upload failed' });
+      }
+
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ error: 'No files uploaded' });
+      }
+
+      try {
+        // Initialize database service
+        if (!global.databaseService) {
+          const { DatabaseService } = require('../lib/database');
+          global.databaseService = new DatabaseService();
+          await global.databaseService.initialize();
+        }
+
+        const uploadedFiles = [];
+        
+        for (const file of req.files) {
+          // Store file info in database
+          const fileId = await global.databaseService.storeUploadedFile({
+            filename: file.filename,
+            originalname: file.originalname,
+            path: file.path,
+            mimetype: file.mimetype,
+            size: file.size,
+            userId: req.body.userId || 'default'
+          });
+
+          uploadedFiles.push({
+            id: fileId,
+            filename: file.filename,
+            originalname: file.originalname,
+            url: `/uploads/${file.filename}`,
+            type: file.mimetype.startsWith('image/') ? 'image' : 
+                  file.mimetype.startsWith('video/') ? 'video' : 'audio',
+            size: file.size
+          });
+        }
+
+        res.json({ 
+          success: true, 
+          files: uploadedFiles,
+          message: `Successfully uploaded ${uploadedFiles.length} file(s)` 
+        });
+
+      } catch (dbError) {
+        console.error('Database error during upload:', dbError);
+        res.status(500).json({ error: 'Failed to save file information to database' });
+      }
+    });
+
+  } catch (error) {
+    console.error('Upload endpoint error:', error);
+    res.status(500).json({ error: error.message || 'Upload failed' });
+  }
+});
+
+// Get uploaded files
+app.get('/api/uploads', async (req, res) => {
+  try {
+    const { category, userId = 'default' } = req.query;
+    
+    // Initialize database service
+    if (!global.databaseService) {
+      const { DatabaseService } = require('../lib/database');
+      global.databaseService = new DatabaseService();
+      await global.databaseService.initialize();
+    }
+    
+    const files = await global.databaseService.getUserFiles(userId, category);
+    
+    res.json({ 
+      success: true, 
+      files: files.map(file => ({
+        id: file.id,
+        filename: file.filename,
+        originalName: file.original_name,
+        url: file.file_url,
+        type: file.category,
+        size: file.size,
+        mimetype: file.mimetype,
+        uploadedAt: file.created_at
+      }))
+    });
+    
+  } catch (error) {
+    console.error('Get uploads error:', error);
+    res.status(500).json({ error: error.message || 'Failed to get uploaded files' });
+  }
+});
+
+// Delete uploaded file
+app.delete('/api/uploads/:fileId', async (req, res) => {
+  try {
+    const { fileId } = req.params;
+    const path = require('path');
+    const fs = require('fs-extra');
+    
+    // Initialize database service
+    if (!global.databaseService) {
+      const { DatabaseService } = require('../lib/database');
+      global.databaseService = new DatabaseService();
+      await global.databaseService.initialize();
+    }
+    
+    // Get file info from database
+    const fileInfo = await global.databaseService.get('SELECT * FROM uploaded_files WHERE id = ?', [fileId]);
+    
+    if (!fileInfo) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    
+    // Delete file from filesystem
+    try {
+      if (fs.existsSync(fileInfo.file_path)) {
+        fs.unlinkSync(fileInfo.file_path);
+      }
+    } catch (fsError) {
+      console.warn('Failed to delete file from filesystem:', fsError.message);
+    }
+    
+    // Delete file record from database
+    await global.databaseService.run('DELETE FROM uploaded_files WHERE id = ?', [fileId]);
+    
+    res.json({ 
+      success: true, 
+      message: 'File deleted successfully' 
+    });
+    
+  } catch (error) {
+    console.error('Delete upload error:', error);
+    res.status(500).json({ error: error.message || 'Failed to delete file' });
+  }
+});
+
+// Serve uploaded files
+app.get('/uploads/:filename', (req, res) => {
+  const path = require('path');
+  const filename = req.params.filename;
+  const filepath = path.join(process.cwd(), 'uploads', filename);
+  
+  // Security: prevent path traversal
+  if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+    return res.status(400).json({ error: 'Invalid filename' });
+  }
+  
+  res.sendFile(filepath, (err) => {
+    if (err) {
+      console.error('File serve error:', err);
+      res.status(404).json({ error: 'File not found' });
+    }
+  });
+});
+
 // Export for Vercel
 module.exports = app;
