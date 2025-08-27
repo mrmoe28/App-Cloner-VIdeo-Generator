@@ -329,15 +329,29 @@ app.use((error, req, res, next) => {
 // Serve uploaded files
 app.use('/uploads', express.static('./uploads'));
 
-// Start server
-async function startServer() {
+// Initialize services
+async function initializeApp() {
   await initializeServices();
-  
-  app.listen(PORT, () => {
-    console.log(`🚀 App Cloner Video Generator Server running on http://localhost:${PORT}`);
-    console.log(`📁 Serving files from: ${__dirname}`);
-    console.log(`🎬 Open http://localhost:${PORT}/advanced_video_creator.html to start creating videos`);
-  });
+  return app;
 }
 
-startServer().catch(console.error);
+// Start server (only if running directly, not in serverless environment)
+if (require.main === module) {
+  async function startServer() {
+    await initializeServices();
+    
+    app.listen(PORT, () => {
+      console.log(`🚀 App Cloner Video Generator Server running on http://localhost:${PORT}`);
+      console.log(`📁 Serving files from: ${__dirname}`);
+      console.log(`🎬 Open http://localhost:${PORT}/public/ai-video-studio.html to start creating videos`);
+    });
+  }
+  
+  startServer().catch(console.error);
+} else {
+  // For serverless deployment
+  initializeServices().catch(console.error);
+}
+
+// Export the app for serverless functions
+module.exports = app;
