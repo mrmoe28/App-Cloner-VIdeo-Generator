@@ -5,34 +5,30 @@
       "maxDuration": 30
     }
   },
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api"
+      "src": "/api/(.*)",
+      "dest": "/api"
     },
     {
-      "source": "/advanced-video-creator",
-      "destination": "/public/advanced_video_creator.html"
+      "src": "/advanced-video-creator",
+      "dest": "/public/advanced_video_creator.html"
     },
     {
-      "source": "/video-generator",
-      "destination": "/public/video_generator.html"
+      "src": "/video-generator", 
+      "dest": "/public/video_generator.html"
     },
     {
-      "source": "/video-demo",
-      "destination": "/public/video_demo.html"
+      "src": "/video-demo",
+      "dest": "/public/video_demo.html"
     },
     {
-      "source": "/ai-video-studio",
-      "destination": "/public/ai-video-studio.html"
+      "src": "/ai-video-studio",
+      "dest": "/public/ai-video-studio.html"
     },
     {
-      "source": "/",
-      "destination": "/public/ai-video-studio.html"
-    },
-    {
-      "source": "/(.*\\.(css|js|png|jpg|jpeg|gif|ico|svg|mp4|webm|avi))",
-      "destination": "/public/$1"
+      "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|ico|svg|mp4|webm|avi))",
+      "dest": "/public/$1"
     }
   ]
 }

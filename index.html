@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Video Studio - App Cloner Video Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            padding: 20px 0;
+            border-bottom: 1px solid #333;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 900;
+            color: #00D4FF;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo::before {
+            content: '🎬';
+            font-size: 28px;
+        }
+
+        .api-setup {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .api-input {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            font-size: 14px;
+            width: 200px;
+        }
+
+        .api-input::placeholder {
+            color: #666;
+        }
+
+        .btn {
+            background: #00D4FF;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: #00b8e6;
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            padding: 30px 0;
+            min-height: calc(100vh - 120px);
+        }
+
+        .studio-workspace {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            border: 1px solid #333;
+            overflow: hidden;
+        }
+
+        .workspace-header {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .workspace-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .workspace-tabs {
+            display: flex;
+            gap: 5px;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            border-radius: 6px;
+            background: transparent;
+            color: #999;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: #00D4FF;
+            color: #000;
+        }
+
+        .workspace-content {
+            padding: 20px;
+            min-height: 600px;
+        }
+
+        .ai-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            border: 1px solid #333;
+            height: fit-content;
+            position: sticky;
+            top: 120px;
+        }
+
+        .ai-panel-header {
+            background: linear-gradient(45deg, #00D4FF, #0099cc);
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            color: #000;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ai-panel-header::before {
+            content: '🤖';
+            font-size: 20px;
+        }
+
+        .ai-panel-content {
+            padding: 20px;
+        }
+
+        .video-preview {
+            width: 100%;
+            max-width: 360px;
+            height: 640px;
+            background: #000;
+            border-radius: 20px;
+            margin: 0 auto 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 212, 255, 0.3);
+        }
+
+        .video-preview canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+        }
+
+        .preview-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+        }
+
+        .preview-overlay.hidden {
+            display: none;
+        }
+
+        .preview-message {
+            font-size: 16px;
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #ddd;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #00D4FF;
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        }
+
+        .form-select {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #00D4FF, #0099cc);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-ready {
+            background: rgba(68, 255, 68, 0.2);
+            color: #44ff44;
+        }
+
+        .status-processing {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+        }
+
+        .status-error {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+        }
+
+        .file-upload {
+            border: 2px dashed #333;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 0;
+        }
+
+        .file-upload:hover {
+            border-color: #00D4FF;
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .file-upload.dragover {
+            border-color: #00D4FF;
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .stock-content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stock-item {
+            aspect-ratio: 9/16;
+            background: #333;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .stock-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .stock-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .stock-item-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+            color: white;
+            padding: 8px;
+            font-size: 10px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .stock-item:hover .stock-item-overlay {
+            transform: translateY(0);
+        }
+
+        .social-share-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-platform {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .social-platform:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .social-platform-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .social-platform-name {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 15px 20px;
+            color: white;
+            font-size: 14px;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-color: #44ff44;
+            background: rgba(68, 255, 68, 0.1);
+        }
+
+        .notification.error {
+            border-color: #ff4444;
+            background: rgba(255, 68, 68, 0.1);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .ai-panel {
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 10px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .api-setup {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .video-preview {
+                max-width: 280px;
+                height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">AI Video Studio</div>
+                <div class="api-setup">
+                    <input type="password" class="api-input" id="apiKeyInput" placeholder="Enter OpenAI API Key">
+                    <button class="btn" id="setupApiBtn">Setup AI</button>
+                    <div class="status-indicator status-ready" id="apiStatus">Ready</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="main-content">
+            <!-- Main Workspace -->
+            <div class="studio-workspace">
+                <div class="workspace-header">
+                    <h2 class="workspace-title">Video Studio</h2>
+                    <div class="workspace-tabs">
+                        <div class="tab active" data-tab="create">Create</div>
+                        <div class="tab" data-tab="assets">Assets</div>
+                        <div class="tab" data-tab="library">Library</div>
+                    </div>
+                </div>
+                <div class="workspace-content" id="workspaceContent">
+                    <!-- Create Tab Content -->
+                    <div class="tab-content active" id="create-content">
+                        <div class="video-preview">
+                            <canvas id="videoCanvas" width="360" height="640"></canvas>
+                            <div class="preview-overlay" id="previewOverlay">
+                                <div class="preview-message">🎬 Your video preview will appear here</div>
+                                <button class="btn" id="startCreationBtn">Start Creating</button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Video Platform</label>
+                            <select class="form-select" id="platformSelect">
+                                <option value="general">General (9:16)</option>
+                                <option value="youtube-shorts">YouTube Shorts</option>
+                                <option value="tiktok">TikTok</option>
+                                <option value="instagram-reels">Instagram Reels</option>
+                                <option value="twitter">Twitter/X</option>
+                            </select>
+                        </div>
+
+                        <div class="progress-bar" id="creationProgress">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <button class="btn" id="generateVideoBtn" disabled>🎬 Generate Video</button>
+                            <button class="btn btn-secondary" id="downloadVideoBtn" disabled>💾 Download</button>
+                        </div>
+                    </div>
+
+                    <!-- Assets Tab Content -->
+                    <div class="tab-content" id="assets-content">
+                        <div class="file-upload" id="fileUpload">
+                            <div>📁 Drop files here or click to upload</div>
+                            <div style="font-size: 12px; color: #666; margin-top: 10px;">
+                                Supports: Images, Videos, Audio (Max 100MB)
+                            </div>
+                            <input type="file" id="fileInput" multiple accept="image/*,video/*,audio/*" style="display: none;">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Stock Content Search</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" class="form-input" id="stockSearchInput" placeholder="Search for images, videos, music...">
+                                <select class="form-select" id="stockTypeSelect" style="width: auto;">
+                                    <option value="image">Images</option>
+                                    <option value="video">Videos</option>
+                                    <option value="audio">Audio</option>
+                                </select>
+                                <button class="btn" id="stockSearchBtn">🔍 Search</button>
+                            </div>
+                        </div>
+
+                        <div class="stock-content-grid" id="stockContentGrid">
+                            <!-- Stock content items will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Library Tab Content -->
+                    <div class="tab-content" id="library-content">
+                        <div class="form-group">
+                            <label class="form-label">Your Videos</label>
+                            <div id="videoLibrary">
+                                <div style="text-align: center; color: #666; padding: 40px;">
+                                    📹 Your created videos will appear here
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="social-share-grid">
+                            <div class="social-platform" data-platform="youtube">
+                                <div class="social-platform-icon">📺</div>
+                                <div class="social-platform-name">YouTube</div>
+                            </div>
+                            <div class="social-platform" data-platform="tiktok">
+                                <div class="social-platform-icon">🎵</div>
+                                <div class="social-platform-name">TikTok</div>
+                            </div>
+                            <div class="social-platform" data-platform="instagram">
+                                <div class="social-platform-icon">📸</div>
+                                <div class="social-platform-name">Instagram</div>
+                            </div>
+                            <div class="social-platform" data-platform="twitter">
+                                <div class="social-platform-icon">🐦</div>
+                                <div class="social-platform-name">Twitter</div>
+                            </div>
+                            <div class="social-platform" data-platform="facebook">
+                                <div class="social-platform-icon">👥</div>
+                                <div class="social-platform-name">Facebook</div>
+                            </div>
+                            <div class="social-platform" data-platform="linkedin">
+                                <div class="social-platform-icon">💼</div>
+                                <div class="social-platform-name">LinkedIn</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Assistant Panel -->
+            <div class="ai-panel">
+                <div class="ai-panel-header">
+                    AI Assistant
+                </div>
+                <div class="ai-panel-content">
+                    <div class="form-group">
+                        <label class="form-label">What kind of video do you want?</label>
+                        <textarea class="form-input" id="aiPrompt" rows="4" 
+                                  placeholder="Describe your video idea... e.g., 'Create a 60-second promotional video for App Cloner showing how it duplicates apps instantly'"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <button class="btn" id="generateScriptBtn">✨ Generate Script</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Generated Script</label>
+                        <textarea class="form-input" id="generatedScript" rows="8" readonly></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <button class="btn btn-secondary" id="improveScriptBtn" disabled>🚀 Improve Script</button>
+                        <button class="btn btn-secondary" id="generatePromptsBtn" disabled>🎨 Get Visual Ideas</button>
+                    </div>
+
+                    <div id="aiStatus" class="form-group">
+                        <div class="status-indicator status-ready">AI Ready</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        class AIVideoStudio {
+            constructor() {
+                this.apiKey = null;
+                this.apiConfigured = false;
+                this.currentVideo = null;
+                this.canvas = document.getElementById('videoCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.isProcessing = false;
+                
+                this.initializeEventListeners();
+                this.initializeCanvas();
+                this.checkServerStatus();
+                this.checkApiConfiguration();
+            }
+
+            initializeEventListeners() {
+                // API Setup
+                const setupBtn = document.getElementById('setupApiBtn');
+                if (setupBtn) {
+                    setupBtn.addEventListener('click', () => this.setupAPI());
+                }
+                
+                // Tabs
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
+                });
+
+                // AI Assistant
+                document.getElementById('generateScriptBtn').addEventListener('click', () => this.generateScript());
+                document.getElementById('improveScriptBtn').addEventListener('click', () => this.improveScript());
+                document.getElementById('generatePromptsBtn').addEventListener('click', () => this.generateVisualPrompts());
+
+                // Video Creation
+                document.getElementById('startCreationBtn').addEventListener('click', () => this.startVideoCreation());
+                document.getElementById('generateVideoBtn').addEventListener('click', () => this.generateVideo());
+
+                // File Upload
+                const fileUpload = document.getElementById('fileUpload');
+                const fileInput = document.getElementById('fileInput');
+                
+                fileUpload.addEventListener('click', () => fileInput.click());
+                fileUpload.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    fileUpload.classList.add('dragover');
+                });
+                fileUpload.addEventListener('dragleave', () => {
+                    fileUpload.classList.remove('dragover');
+                });
+                fileUpload.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    fileUpload.classList.remove('dragover');
+                    this.handleFileUpload(e.dataTransfer.files);
+                });
+                fileInput.addEventListener('change', (e) => this.handleFileUpload(e.target.files));
+
+                // Stock Content Search
+                document.getElementById('stockSearchBtn').addEventListener('click', () => this.searchStockContent());
+
+                // Social Media Sharing
+                document.querySelectorAll('.social-platform').forEach(platform => {
+                    platform.addEventListener('click', (e) => {
+                        const platformName = e.currentTarget.dataset.platform;
+                        this.shareToSocialMedia(platformName);
+                    });
+                });
+            }
+
+            initializeCanvas() {
+                this.ctx.fillStyle = '#000';
+                this.ctx.fillRect(0, 0, 360, 640);
+                this.ctx.fillStyle = '#00D4FF';
+                this.ctx.font = 'bold 24px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('AI Video Studio', 180, 320);
+                this.ctx.font = '16px Arial';
+                this.ctx.fillText('Powered by AI', 180, 350);
+            }
+
+            async checkServerStatus() {
+                try {
+                    const response = await fetch('/api/health');
+                    const data = await response.json();
+                    
+                    if (data.status === 'healthy') {
+                        this.showNotification('✅ Server connected successfully', 'success');
+                    }
+                } catch (error) {
+                    this.showNotification('⚠️ Server connection failed. Some features may not work.', 'error');
+                }
+            }
+
+            async checkApiConfiguration() {
+                try {
+                    const response = await fetch('/api/openai/check');
+                    const data = await response.json();
+                    
+                    if (data.configured) {
+                        this.apiConfigured = true;
+                        this.apiKey = 'configured';
+                        
+                        // Hide API input and show configured status
+                        const apiSetup = document.querySelector('.api-setup');
+                        if (data.useEnvKey) {
+                            apiSetup.innerHTML = `
+                                <div class="status-indicator status-ready" id="apiStatus">
+                                    ✅ AI Ready (Server Configured)
+                                </div>
+                            `;
+                        } else {
+                            apiSetup.innerHTML = `
+                                <div class="status-indicator status-ready" id="apiStatus">
+                                    ✅ AI Ready
+                                </div>
+                                <button class="btn btn-secondary" onclick="location.reload()">Reset API Key</button>
+                            `;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to check API configuration:', error);
+                }
+            }
+
+            async setupAPI() {
+                const apiKeyInput = document.getElementById('apiKeyInput');
+                if (!apiKeyInput) {
+                    // API key input not available (already configured via env)
+                    return;
+                }
+                
+                const apiKey = apiKeyInput.value.trim();
+                if (!apiKey) {
+                    this.showNotification('Please enter your OpenAI API key', 'error');
+                    return;
+                }
+
+                try {
+                    this.setUIState('apiStatus', 'processing');
+                    
+                    const response = await fetch('/api/openai/setup', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ apiKey, userId: 'default' })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.apiKey = data.keyId === 'server' ? 'configured' : apiKey;
+                        this.apiConfigured = true;
+                        this.setUIState('apiStatus', 'ready');
+                        this.showNotification('✅ OpenAI API setup successful!', 'success');
+                        
+                        if (data.keyId === 'server') {
+                            // Server-configured key, update UI
+                            await this.checkApiConfiguration();
+                        } else {
+                            apiKeyInput.value = '';
+                        }
+                    } else {
+                        throw new Error(data.error || 'API setup failed');
+                    }
+                } catch (error) {
+                    this.setUIState('apiStatus', 'error');
+                    this.showNotification(`❌ API setup failed: ${error.message}`, 'error');
+                }
+            }
+
+            switchTab(tabName) {
+                // Update tab buttons
+                document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+                // Update content
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                document.getElementById(`${tabName}-content`).classList.add('active');
+            }
+
+            async generateScript() {
+                const prompt = document.getElementById('aiPrompt').value.trim();
+                if (!prompt) {
+                    this.showNotification('Please describe your video idea', 'error');
+                    return;
+                }
+
+                try {
+                    this.setUIState('aiStatus', 'processing');
+                    
+                    const platform = document.getElementById('platformSelect').value;
+                    const response = await fetch('/api/ai/generate-script', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            prompt,
+                            platform,
+                            duration: 60,
+                            userId: 'default'
+                        })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        const scriptText = typeof data.script === 'object' 
+                            ? JSON.stringify(data.script, null, 2)
+                            : data.script;
+                        
+                        document.getElementById('generatedScript').value = scriptText;
+                        document.getElementById('improveScriptBtn').disabled = false;
+                        document.getElementById('generatePromptsBtn').disabled = false;
+                        
+                        this.setUIState('aiStatus', 'ready');
+                        this.showNotification('✅ Script generated successfully!', 'success');
+                    } else {
+                        throw new Error(data.error || 'Script generation failed');
+                    }
+                } catch (error) {
+                    this.setUIState('aiStatus', 'error');
+                    this.showNotification(`❌ Script generation failed: ${error.message}`, 'error');
+                }
+            }
+
+            async improveScript() {
+                const script = document.getElementById('generatedScript').value;
+                if (!script) return;
+
+                try {
+                    this.setUIState('aiStatus', 'processing');
+                    
+                    const response = await fetch('/api/ai/improve-script', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            script,
+                            improvements: ['engagement', 'clarity', 'cta'],
+                            userId: 'default'
+                        })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        const improvedScript = typeof data.script === 'object' 
+                            ? JSON.stringify(data.script, null, 2)
+                            : data.script;
+                        
+                        document.getElementById('generatedScript').value = improvedScript;
+                        this.setUIState('aiStatus', 'ready');
+                        this.showNotification('✅ Script improved!', 'success');
+                    } else {
+                        throw new Error(data.error || 'Script improvement failed');
+                    }
+                } catch (error) {
+                    this.setUIState('aiStatus', 'error');
+                    this.showNotification(`❌ Script improvement failed: ${error.message}`, 'error');
+                }
+            }
+
+            async generateVisualPrompts() {
+                const script = document.getElementById('generatedScript').value;
+                if (!script) return;
+
+                try {
+                    this.setUIState('aiStatus', 'processing');
+                    
+                    const response = await fetch('/api/ai/generate-scene-prompts', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            script,
+                            userId: 'default'
+                        })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        console.log('Visual prompts:', data.prompts);
+                        this.setUIState('aiStatus', 'ready');
+                        this.showNotification('✅ Visual prompts generated! Check console.', 'success');
+                    } else {
+                        throw new Error(data.error || 'Visual prompt generation failed');
+                    }
+                } catch (error) {
+                    this.setUIState('aiStatus', 'error');
+                    this.showNotification(`❌ Visual prompt generation failed: ${error.message}`, 'error');
+                }
+            }
+
+            startVideoCreation() {
+                document.getElementById('previewOverlay').classList.add('hidden');
+                document.getElementById('generateVideoBtn').disabled = false;
+                this.showNotification('🎬 Ready to create your video!', 'success');
+            }
+
+            async generateVideo() {
+                if (this.isProcessing) return;
+                
+                this.isProcessing = true;
+                document.getElementById('generateVideoBtn').disabled = true;
+                
+                try {
+                    const script = document.getElementById('generatedScript').value;
+                    const platform = document.getElementById('platformSelect').value;
+                    
+                    // Mock video generation process
+                    this.updateProgress(0);
+                    await this.sleep(1000);
+                    
+                    this.updateProgress(25);
+                    this.showNotification('🎨 Creating scenes...', 'success');
+                    await this.sleep(2000);
+                    
+                    this.updateProgress(50);
+                    this.showNotification('🎵 Adding audio...', 'success');
+                    await this.sleep(2000);
+                    
+                    this.updateProgress(75);
+                    this.showNotification('✨ Applying effects...', 'success');
+                    await this.sleep(2000);
+                    
+                    this.updateProgress(100);
+                    this.showNotification('✅ Video generated successfully!', 'success');
+                    
+                    document.getElementById('downloadVideoBtn').disabled = false;
+                    
+                } catch (error) {
+                    this.showNotification(`❌ Video generation failed: ${error.message}`, 'error');
+                } finally {
+                    this.isProcessing = false;
+                    document.getElementById('generateVideoBtn').disabled = false;
+                    setTimeout(() => this.updateProgress(0), 3000);
+                }
+            }
+
+            async handleFileUpload(files) {
+                const formData = new FormData();
+                
+                Array.from(files).forEach(file => {
+                    formData.append('files', file);
+                });
+                formData.append('userId', 'default');
+
+                try {
+                    const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.showNotification(`✅ Uploaded ${data.files.length} file(s) successfully!`, 'success');
+                    } else {
+                        throw new Error(data.error || 'Upload failed');
+                    }
+                } catch (error) {
+                    this.showNotification(`❌ Upload failed: ${error.message}`, 'error');
+                }
+            }
+
+            async searchStockContent() {
+                const query = document.getElementById('stockSearchInput').value.trim();
+                const type = document.getElementById('stockTypeSelect').value;
+                
+                if (!query) {
+                    this.showNotification('Please enter a search term', 'error');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/stock/search?query=${encodeURIComponent(query)}&type=${type}&limit=12`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.displayStockContent(data.results);
+                        this.showNotification(`✅ Found ${data.results.results.length} ${type}s`, 'success');
+                    } else {
+                        throw new Error(data.error || 'Search failed');
+                    }
+                } catch (error) {
+                    this.showNotification(`❌ Search failed: ${error.message}`, 'error');
+                }
+            }
+
+            displayStockContent(results) {
+                const grid = document.getElementById('stockContentGrid');
+                grid.innerHTML = '';
+
+                results.results.forEach(item => {
+                    const stockItem = document.createElement('div');
+                    stockItem.className = 'stock-item';
+                    stockItem.innerHTML = `
+                        ${item.thumbnailUrl ? `<img src="${item.thumbnailUrl}" alt="${item.title}">` : ''}
+                        <div class="stock-item-overlay">
+                            <div>${item.title}</div>
+                            <div>${item.provider}</div>
+                        </div>
+                    `;
+                    
+                    stockItem.addEventListener('click', () => {
+                        this.showNotification(`Selected: ${item.title}`, 'success');
+                    });
+                    
+                    grid.appendChild(stockItem);
+                });
+            }
+
+            async shareToSocialMedia(platform) {
+                if (!this.currentVideo) {
+                    this.showNotification('Please create a video first', 'error');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/social/share', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            platform,
+                            videoId: this.currentVideo.id,
+                            caption: 'Check out this amazing video created with AI Video Studio!',
+                            userId: 'default'
+                        })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        if (data.url) {
+                            window.open(data.url, '_blank');
+                        }
+                        this.showNotification(`✅ Sharing to ${platform}!`, 'success');
+                    } else {
+                        throw new Error(data.error || 'Sharing failed');
+                    }
+                } catch (error) {
+                    this.showNotification(`❌ Sharing failed: ${error.message}`, 'error');
+                }
+            }
+
+            // Utility methods
+            updateProgress(percent) {
+                document.getElementById('progressFill').style.width = `${percent}%`;
+            }
+
+            setUIState(elementId, state) {
+                const element = document.getElementById(elementId);
+                element.className = `status-indicator status-${state}`;
+                
+                const stateTexts = {
+                    ready: '✅ Ready',
+                    processing: '⏳ Processing...',
+                    error: '❌ Error'
+                };
+                
+                element.textContent = stateTexts[state] || state;
+            }
+
+            showNotification(message, type = 'success') {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type} show`;
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 4000);
+            }
+
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new AIVideoStudio();
+        });
+    </script>
+</body>
+</html>
