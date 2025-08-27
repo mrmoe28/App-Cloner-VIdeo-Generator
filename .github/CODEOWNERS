@@ -1,0 +1,21 @@
+# Code Owners for AI Video Studio
+# These users will be automatically requested for review when changes are made
+
+# Global ownership - all files
+* @mrmoe28
+
+# Frontend files
+public/ @mrmoe28
+*.html @mrmoe28
+
+# Core library files  
+lib/ @mrmoe28
+
+# Configuration and deployment
+vercel.json @mrmoe28
+package.json @mrmoe28
+.github/ @mrmoe28
+
+# Documentation
+*.md @mrmoe28
+DEPLOYMENT.md @mrmoe28

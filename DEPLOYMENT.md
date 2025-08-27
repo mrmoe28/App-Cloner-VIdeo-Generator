@@ -1,5 +1,8 @@
 # 🚀 Vercel Deployment Guide
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/mrmoe28/App-Cloner-VIdeo-Generator)
+[![Vercel Deployment](https://github.com/mrmoe28/App-Cloner-VIdeo-Generator/actions/workflows/vercel-deployment.yml/badge.svg)](https://github.com/mrmoe28/App-Cloner-VIdeo-Generator/actions/workflows/vercel-deployment.yml)
+
 Deploy your AI Video Studio to Vercel in minutes with this comprehensive guide.
 
 ## 📋 Prerequisites
@@ -12,7 +15,45 @@ Before deploying, ensure you have:
 
 ## 🔧 Quick Deploy
 
-### Option 1: Deploy Button (Fastest)
+### Option 1: Automatic GitHub Integration (Recommended)
+
+The repository includes GitHub Actions for automatic deployment:
+
+1. **Fork this repository** to your GitHub account
+2. **Set up Vercel project**:
+   - Connect your GitHub repo to Vercel
+   - Get your Vercel tokens from [Vercel Settings](https://vercel.com/account/tokens)
+3. **Add GitHub Secrets**:
+   - Go to your repo → Settings → Secrets and Variables → Actions
+   - Add these repository secrets:
+     ```
+     VERCEL_TOKEN=your-vercel-token
+     VERCEL_ORG_ID=your-vercel-org-id  
+     VERCEL_PROJECT_ID=your-vercel-project-id
+     ```
+   
+   **📍 How to get these values:**
+   ```bash
+   # Install Vercel CLI
+   npm i -g vercel
+   
+   # Login and link your project
+   vercel login
+   vercel link
+   
+   # Get your IDs
+   cat .vercel/project.json
+   ```
+4. **Push to main** - deployment triggers automatically! 🚀
+
+**✨ Features:**
+- ✅ Automatic deployment on push to `main`
+- ✅ Preview deployments for pull requests
+- ✅ Lighthouse performance testing
+- ✅ Deployment status comments on PRs
+- ✅ Linting checks before deployment
+
+### Option 2: Deploy Button (Fastest)
 
 Click this button to deploy directly to Vercel:
 
