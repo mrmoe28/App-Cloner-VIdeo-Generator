@@ -955,28 +955,74 @@
                     const script = document.getElementById('generatedScript').value;
                     const platform = document.getElementById('platformSelect').value;
                     
-                    // Mock video generation process
-                    this.updateProgress(0);
-                    await this.sleep(1000);
+                    if (!script) {
+                        this.showNotification('❌ Please generate or enter a script first', 'error');
+                        return;
+                    }
                     
-                    this.updateProgress(25);
-                    this.showNotification('🎨 Creating scenes...', 'success');
-                    await this.sleep(2000);
+                    // Start real video generation process
+                    this.updateProgress(10);
+                    this.showNotification('🚀 Starting video generation...', 'success');
                     
-                    this.updateProgress(50);
-                    this.showNotification('🎵 Adding audio...', 'success');
-                    await this.sleep(2000);
+                    const response = await fetch('/api/video/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            script: {
+                                title: 'AI Generated Video',
+                                platform: platform,
+                                duration: 15,
+                                scenes: [
+                                    {
+                                        startTime: 0,
+                                        endTime: 5,
+                                        voiceover: script.substring(0, 100),
+                                        searchKeywords: 'business professional technology',
+                                        mediaType: 'image'
+                                    },
+                                    {
+                                        startTime: 5,
+                                        endTime: 10,
+                                        voiceover: script.substring(100, 200),
+                                        searchKeywords: 'modern workspace computer',
+                                        mediaType: 'image'
+                                    },
+                                    {
+                                        startTime: 10,
+                                        endTime: 15,
+                                        voiceover: script.substring(200),
+                                        searchKeywords: 'success achievement team',
+                                        mediaType: 'image'
+                                    }
+                                ]
+                            },
+                            options: {
+                                platform: platform,
+                                resolution: '720x1280',
+                                fps: 30
+                            },
+                            userId: 'default'
+                        })
+                    });
                     
-                    this.updateProgress(75);
-                    this.showNotification('✨ Applying effects...', 'success');
-                    await this.sleep(2000);
+                    this.updateProgress(30);
+                    this.showNotification('🎨 Processing assets...', 'success');
                     
-                    this.updateProgress(100);
-                    this.showNotification('✅ Video generated successfully!', 'success');
+                    const data = await response.json();
                     
-                    // Show video preview with demo video
-                    this.showVideoPreview();
-                    document.getElementById('downloadVideoBtn').disabled = false;
+                    if (data.success) {
+                        this.updateProgress(100);
+                        this.showNotification('✅ Video generated successfully!', 'success');
+                        
+                        // Show video preview with actual generated video
+                        this.showVideoPreview(data.video);
+                        document.getElementById('downloadVideoBtn').disabled = false;
+                        
+                        // Store video data for download
+                        this.currentVideo = data.video;
+                    } else {
+                        throw new Error(data.error || 'Video generation failed');
+                    }
                     
                 } catch (error) {
                     this.showNotification(`❌ Video generation failed: ${error.message}`, 'error');
@@ -1133,7 +1179,7 @@
                 return new Promise(resolve => setTimeout(resolve, ms));
             }
 
-            showVideoPreview() {
+            showVideoPreview(videoData = null) {
                 // Show the video preview section
                 document.getElementById('videoPreviewSection').style.display = 'block';
                 
@@ -1163,35 +1209,73 @@
                     // In a real implementation, this would be the actual video file
                     const demoVideoUrl = 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMWVzZHMK';
                     
-                    // Set up video info
-                    videoInfo.innerHTML = `
-                        <strong>Generated Video</strong><br>
-                        Duration: Demo video (15s) | Resolution: 640x360 | Format: MP4<br>
-                        <em>In production, this would show your actual generated video</em>
-                    `;
-                    
-                    // Show placeholder message since we can't create a real video in demo
-                    videoPreview.style.display = 'none';
-                    const placeholder = document.createElement('div');
-                    placeholder.style.cssText = `
-                        width: 100%; 
-                        height: 200px; 
-                        background: linear-gradient(45deg, #0066cc, #004499);
-                        display: flex; 
-                        align-items: center; 
-                        justify-content: center; 
-                        color: white; 
-                        font-size: 18px; 
-                        border-radius: 8px;
-                        flex-direction: column;
-                        gap: 10px;
-                    `;
-                    placeholder.innerHTML = `
-                        <div>🎬 Video Generated Successfully!</div>
-                        <div style="font-size: 14px; opacity: 0.8;">Click download to save your video</div>
-                    `;
-                    
-                    videoPreview.parentNode.insertBefore(placeholder, videoPreview);
+                    if (videoData && videoData.videoPath) {
+                        // Real video data available
+                        videoInfo.innerHTML = `
+                            <strong>${videoData.script?.title || 'Generated Video'}</strong><br>
+                            Duration: ${videoData.timeline?.totalDuration || '15'}s | Resolution: 720x1280 | Format: MP4<br>
+                            <em>Video ID: ${videoData.id}</em>
+                        `;
+                        
+                        // Try to show actual video if URL is available
+                        const videoUrl = `/output/videos/${videoData.id}.mp4`;
+                        videoPreview.src = videoUrl;
+                        videoPreview.style.display = 'block';
+                        
+                        videoPreview.onerror = () => {
+                            // Fallback if video can't be loaded
+                            videoPreview.style.display = 'none';
+                            const placeholder = document.createElement('div');
+                            placeholder.style.cssText = `
+                                width: 100%; 
+                                height: 200px; 
+                                background: linear-gradient(45deg, #0066cc, #004499);
+                                display: flex; 
+                                align-items: center; 
+                                justify-content: center; 
+                                color: white; 
+                                font-size: 18px; 
+                                border-radius: 8px;
+                                flex-direction: column;
+                                gap: 10px;
+                            `;
+                            placeholder.innerHTML = `
+                                <div>🎬 Video Generated Successfully!</div>
+                                <div style="font-size: 14px; opacity: 0.8;">Video ready for download</div>
+                            `;
+                            videoPreview.parentNode.insertBefore(placeholder, videoPreview);
+                        };
+                    } else {
+                        // Demo mode - set up demo info
+                        videoInfo.innerHTML = `
+                            <strong>Generated Video</strong><br>
+                            Duration: Demo video (15s) | Resolution: 720x1280 | Format: MP4<br>
+                            <em>This is a demo preview - configure APIs for real video generation</em>
+                        `;
+                        
+                        // Show placeholder message for demo
+                        videoPreview.style.display = 'none';
+                        const placeholder = document.createElement('div');
+                        placeholder.style.cssText = `
+                            width: 100%; 
+                            height: 200px; 
+                            background: linear-gradient(45deg, #0066cc, #004499);
+                            display: flex; 
+                            align-items: center; 
+                            justify-content: center; 
+                            color: white; 
+                            font-size: 18px; 
+                            border-radius: 8px;
+                            flex-direction: column;
+                            gap: 10px;
+                        `;
+                        placeholder.innerHTML = `
+                            <div>🎬 Video Generation Demo</div>
+                            <div style="font-size: 14px; opacity: 0.8;">Real videos generated with full API setup</div>
+                        `;
+                        
+                        videoPreview.parentNode.insertBefore(placeholder, videoPreview);
+                    }
                 });
             }
         }
