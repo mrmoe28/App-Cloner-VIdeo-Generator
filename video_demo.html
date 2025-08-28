@@ -166,9 +166,49 @@
             90% { opacity: 1; }
             100% { transform: translateY(-100px) translateX(100px); opacity: 0; }
         }
+        
+        /* Breadcrumb Navigation */
+        .breadcrumb {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            backdrop-filter: blur(20px);
+        }
+        .breadcrumb-link {
+            color: #00D4FF;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: color 0.3s ease;
+        }
+        .breadcrumb-link:hover {
+            color: #0099CC;
+            text-decoration: underline;
+        }
+        .breadcrumb-separator {
+            color: #666;
+        }
+        .breadcrumb-current {
+            color: #ccc;
+        }
     </style>
 </head>
 <body>
+    <nav class="breadcrumb">
+        <a href="index.html" class="breadcrumb-link">🏠 Dashboard</a>
+        <span class="breadcrumb-separator">›</span>
+        <span class="breadcrumb-current">Video Demo</span>
+    </nav>
+
     <div class="video-container">
         <div class="logo">AC</div>
         
