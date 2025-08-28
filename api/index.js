@@ -636,20 +636,62 @@ app.post('/api/video/generate', async (req, res) => {
       );
     }
     
-    // Generate video
-    const videoData = await global.videoGeneratorService.generateVideo({
-      script,
-      options: {
-        ...options,
-        userId: userId || 'default'
-      }
-    });
-    
-    res.json({ 
-      success: true, 
-      video: videoData,
-      message: 'Video generated successfully'
-    });
+    // Check if fast mode is enabled
+    if (options.fastMode) {
+      // Return immediately with processing status
+      const { v4: uuidv4 } = require('uuid');
+      const videoId = uuidv4();
+      
+      // Start background processing
+      setImmediate(async () => {
+        try {
+          console.log(`🚀 Starting background video generation for ${videoId}`);
+          
+          // Initialize processing job in database
+          await global.databaseService.initializeProcessingJob(videoId, 'processing', 0);
+          
+          const videoData = await global.videoGeneratorService.generateVideo({
+            script,
+            options: {
+              ...options,
+              userId: userId || 'default',
+              videoId
+            }
+          });
+          
+          // Update job status to completed
+          await global.databaseService.updateProcessingJob(videoId, 'completed', 100, null, videoData);
+          console.log(`✅ Background video generation completed for ${videoId}`);
+          
+        } catch (error) {
+          console.error(`❌ Background video generation failed for ${videoId}:`, error);
+          await global.databaseService.updateProcessingJob(videoId, 'failed', 0, error.message);
+        }
+      });
+      
+      res.json({ 
+        success: true, 
+        processing: true,
+        videoId,
+        message: 'Video generation started in background'
+      });
+      
+    } else {
+      // Synchronous processing (original behavior)
+      const videoData = await global.videoGeneratorService.generateVideo({
+        script,
+        options: {
+          ...options,
+          userId: userId || 'default'
+        }
+      });
+      
+      res.json({ 
+        success: true, 
+        video: videoData,
+        message: 'Video generated successfully'
+      });
+    }
     
   } catch (error) {
     console.error('Video generation error:', error);

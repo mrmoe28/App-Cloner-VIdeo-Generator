@@ -964,9 +964,14 @@
                     this.updateProgress(10);
                     this.showNotification('🚀 Starting video generation...', 'success');
                     
+                    // Use AbortController for timeout handling
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+                    
                     const response = await fetch('/api/video/generate', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
+                        signal: controller.signal,
                         body: JSON.stringify({
                             script: {
                                 title: 'AI Generated Video',
@@ -999,38 +1004,115 @@
                             options: {
                                 platform: platform,
                                 resolution: '720x1280',
-                                fps: 30
+                                fps: 30,
+                                fastMode: true // Enable fast processing
                             },
                             userId: 'default'
                         })
                     });
                     
+                    clearTimeout(timeoutId);
                     this.updateProgress(30);
                     this.showNotification('🎨 Processing assets...', 'success');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
                     
                     const data = await response.json();
                     
                     if (data.success) {
-                        this.updateProgress(100);
-                        this.showNotification('✅ Video generated successfully!', 'success');
-                        
-                        // Show video preview with actual generated video
-                        this.showVideoPreview(data.video);
-                        this.enhanceVideoPreview(data.video);
-                        document.getElementById('downloadVideoBtn').disabled = false;
-                        
-                        // Store video data for download
-                        this.currentVideo = data.video;
+                        // Check if it's async processing
+                        if (data.processing) {
+                            this.showNotification('🔄 Video processing in background...', 'info');
+                            this.pollVideoProgress(data.videoId);
+                        } else {
+                            this.updateProgress(100);
+                            this.showNotification('✅ Video generated successfully!', 'success');
+                            
+                            // Show video preview with actual generated video
+                            this.showVideoPreview(data.video);
+                            this.enhanceVideoPreview(data.video);
+                            document.getElementById('downloadVideoBtn').disabled = false;
+                            
+                            // Store video data for download
+                            this.currentVideo = data.video;
+                        }
                     } else {
                         throw new Error(data.error || 'Video generation failed');
                     }
                     
                 } catch (error) {
-                    this.showNotification(`❌ Video generation failed: ${error.message}`, 'error');
+                    if (error.name === 'AbortError') {
+                        this.showNotification('❌ Video generation timed out - trying background processing...', 'error');
+                    } else {
+                        this.showNotification(`❌ Video generation failed: ${error.message}`, 'error');
+                    }
                 } finally {
                     this.isProcessing = false;
                     document.getElementById('generateVideoBtn').disabled = false;
                     setTimeout(() => this.updateProgress(0), 3000);
+                }
+            }
+
+            async pollVideoProgress(videoId) {
+                let attempts = 0;
+                const maxAttempts = 30; // 5 minutes max
+                
+                const checkProgress = async () => {
+                    try {
+                        const response = await fetch(`/api/video/progress/${videoId}`);
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            const { status, progress, errorMessage } = data.progress;
+                            
+                            if (status === 'completed') {
+                                this.updateProgress(100);
+                                this.showNotification('✅ Video generated successfully!', 'success');
+                                // Load the completed video
+                                this.loadCompletedVideo(videoId);
+                                return;
+                            } else if (status === 'failed') {
+                                this.showNotification(`❌ Video generation failed: ${errorMessage}`, 'error');
+                                return;
+                            } else if (status === 'processing') {
+                                this.updateProgress(Math.min(progress || 50, 90));
+                                this.showNotification(`🔄 Processing... ${progress || 50}%`, 'info');
+                            }
+                        }
+                        
+                        attempts++;
+                        if (attempts < maxAttempts) {
+                            setTimeout(checkProgress, 10000); // Check every 10 seconds
+                        } else {
+                            this.showNotification('❌ Video generation timed out', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Progress check failed:', error);
+                        attempts++;
+                        if (attempts < maxAttempts) {
+                            setTimeout(checkProgress, 10000);
+                        }
+                    }
+                };
+                
+                checkProgress();
+            }
+
+            async loadCompletedVideo(videoId) {
+                try {
+                    const response = await fetch(`/api/videos/${videoId}`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.showVideoPreview(data.video);
+                        this.enhanceVideoPreview(data.video);
+                        document.getElementById('downloadVideoBtn').disabled = false;
+                        this.currentVideo = data.video;
+                    }
+                } catch (error) {
+                    console.error('Failed to load completed video:', error);
                 }
             }
 
