@@ -8,7 +8,7 @@
     "start": "node server.js",
     "build": "cd mcp-server && npm install && npm run build",
     "lint": "npx eslint *.js lib/*.js --fix",
-    "vercel-build": "cd mcp-server && npm install && npm run build && echo 'Build completed for Vercel'",
+    "vercel-build": "echo 'Starting Vercel build...' && cd mcp-server && npm install && npm run build && cd .. && echo 'Ensuring all HTML files are in root for Vercel...' && cp -f *.html . 2>/dev/null || true && cp -f public/*.html . 2>/dev/null || true && echo 'Build completed for Vercel'",
     "install-deps": "npm install",
     "test": "echo 'Tests not configured yet'",
     "mcp-server": "cd mcp-server && npm run dev",
