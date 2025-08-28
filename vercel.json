@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "npm run vercel-build",
   "functions": {
     "api/index.js": {
       "memory": 512,
@@ -9,28 +8,8 @@
   },
   "rewrites": [
     {
-      "source": "/api/(.*)",
+      "source": "/(.*)",
       "destination": "/api/index.js"
-    },
-    {
-      "source": "/advanced-video-creator",
-      "destination": "/advanced_video_creator.html"
-    },
-    {
-      "source": "/video-generator", 
-      "destination": "/video_generator.html"
-    },
-    {
-      "source": "/video-demo",
-      "destination": "/video_demo.html"
-    },
-    {
-      "source": "/ai-video-studio",
-      "destination": "/ai-video-studio.html"
-    },
-    {
-      "source": "/",
-      "destination": "/index.html"
     }
   ],
   "headers": [

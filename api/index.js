@@ -1,6 +1,8 @@
 // Vercel Serverless Function Entry Point
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 // Simple in-memory storage for serverless
@@ -12,6 +14,26 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Serve static files from root directory
+app.use(express.static(path.join(__dirname, '..')));
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
+// HTML file serving routes
+const serveHtmlFile = (filePath) => (req, res) => {
+  const fullPath = path.join(__dirname, '..', filePath);
+  if (fs.existsSync(fullPath)) {
+    res.sendFile(fullPath);
+  } else {
+    res.status(404).send('File not found');
+  }
+};
+
+app.get('/', serveHtmlFile('index.html'));
+app.get('/advanced-video-creator', serveHtmlFile('advanced_video_creator.html'));
+app.get('/video-generator', serveHtmlFile('video_generator.html'));
+app.get('/video-demo', serveHtmlFile('video_demo.html'));
+app.get('/ai-video-studio', serveHtmlFile('ai-video-studio.html'));
 
 // Simple encryption for API keys
 function simpleEncrypt(text) {
