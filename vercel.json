@@ -1,53 +1,31 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/index.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxLambdaSize": "50mb",
-        "memory": 512
-      }
-    },
-    {
-      "src": "public/**/*",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.html",
-      "use": "@vercel/static"
-    }
-  ],
   "functions": {
     "api/index.js": {
       "memory": 512,
       "maxDuration": 60
     }
   },
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
     },
     {
-      "src": "/advanced-video-creator",
-      "dest": "/advanced_video_creator.html"
+      "source": "/advanced-video-creator",
+      "destination": "/advanced_video_creator.html"
     },
     {
-      "src": "/video-generator", 
-      "dest": "/video_generator.html"
+      "source": "/video-generator", 
+      "destination": "/video_generator.html"
     },
     {
-      "src": "/video-demo",
-      "dest": "/video_demo.html"
+      "source": "/video-demo",
+      "destination": "/video_demo.html"
     },
     {
-      "src": "/ai-video-studio",
-      "dest": "/ai-video-studio.html"
-    },
-    {
-      "src": "/",
-      "dest": "/index.html"
+      "source": "/ai-video-studio",
+      "destination": "/ai-video-studio.html"
     }
   ]
 }

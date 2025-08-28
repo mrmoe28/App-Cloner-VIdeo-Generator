@@ -1,0 +1,34 @@
+name: Test GitHub Actions Trigger
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Test trigger
+        run: |
+          echo "✅ GitHub Actions is working!"
+          echo "🚀 Repository: ${{ github.repository }}"
+          echo "🌟 Branch: ${{ github.ref_name }}"
+          echo "📝 Commit: ${{ github.sha }}"
+          echo "👤 Actor: ${{ github.actor }}"
+          
+      - name: List project files
+        run: |
+          echo "📁 Project structure:"
+          ls -la
+          echo ""
+          echo "🗂️ Key files found:"
+          [ -f "package.json" ] && echo "✓ package.json"
+          [ -f "vercel.json" ] && echo "✓ vercel.json" 
+          [ -f "index.html" ] && echo "✓ index.html"
+          [ -d "api" ] && echo "✓ api/ directory"
+          [ -d ".github/workflows" ] && echo "✓ .github/workflows/ directory"
