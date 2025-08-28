@@ -26,6 +26,10 @@
     {
       "source": "/ai-video-studio",
       "destination": "/ai-video-studio.html"
+    },
+    {
+      "source": "/",
+      "destination": "/index.html"
     }
   ]
 }
