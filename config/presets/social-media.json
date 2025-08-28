@@ -1,0 +1,18 @@
+{
+  "name": "Social Media Optimized",
+  "description": "Optimized for social platforms",
+  "video": {
+    "codec": "libx264",
+    "preset": "medium",
+    "crf": 20,
+    "pixelFormat": "yuv420p",
+    "width": 1080,
+    "height": 1920
+  },
+  "audio": {
+    "codec": "aac",
+    "bitrate": "128k",
+    "sampleRate": 44100
+  },
+  "container": "mp4"
+}

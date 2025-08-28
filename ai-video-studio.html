@@ -1016,6 +1016,7 @@
                         
                         // Show video preview with actual generated video
                         this.showVideoPreview(data.video);
+                        this.enhanceVideoPreview(data.video);
                         document.getElementById('downloadVideoBtn').disabled = false;
                         
                         // Store video data for download
@@ -1277,6 +1278,84 @@
                         videoPreview.parentNode.insertBefore(placeholder, videoPreview);
                     }
                 });
+            }
+
+            // Enhanced video preview with better controls and information
+            enhanceVideoPreview(videoData) {
+                const previewSection = document.getElementById('videoPreviewSection');
+                const videoPreview = document.getElementById('videoPreview');
+                const videoInfo = document.getElementById('videoInfo');
+                
+                if (videoData && videoData.videoPath) {
+                    // Add enhanced controls and metadata
+                    videoInfo.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <strong>${videoData.script?.title || 'Generated Video'}</strong>
+                            <span style="background: #4CAF50; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">Ready</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; text-align: center; margin: 15px 0;">
+                            <div>
+                                <div style="font-weight: bold; color: #333;">Duration</div>
+                                <div>${videoData.timeline?.totalDuration || '15'}s</div>
+                            </div>
+                            <div>
+                                <div style="font-weight: bold; color: #333;">Resolution</div>
+                                <div>720x1280</div>
+                            </div>
+                            <div>
+                                <div style="font-weight: bold; color: #333;">Scenes</div>
+                                <div>${videoData.timeline?.scenes?.length || 3}</div>
+                            </div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; font-size: 12px;">
+                            <strong>Assets Used:</strong><br>
+                            ${videoData.timeline?.scenes?.map(s => `• Scene ${s.sceneId}: ${s.asset?.metadata?.title || 'Stock image'}`).join('<br>') || 'Professional stock images from free libraries'}
+                        </div>
+                        <div style="margin-top: 10px; text-align: center;">
+                            <button onclick="aiVideoStudio.previewFullscreen('${videoData.id}')" style="background: #2196F3; color: white; border: none; padding: 6px 12px; border-radius: 4px; margin-right: 8px; cursor: pointer;">🔍 Fullscreen</button>
+                            <button onclick="aiVideoStudio.shareVideo('${videoData.id}')" style="background: #FF9800; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">📤 Share</button>
+                        </div>
+                    `;
+                    
+                    // Enhanced video element with better controls
+                    videoPreview.controls = true;
+                    videoPreview.style.maxWidth = '100%';
+                    videoPreview.style.borderRadius = '8px';
+                    videoPreview.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
+                    
+                    // Add video event listeners
+                    videoPreview.addEventListener('loadedmetadata', () => {
+                        console.log(`📺 Video loaded: ${videoPreview.duration}s duration, ${videoPreview.videoWidth}x${videoPreview.videoHeight} resolution`);
+                    });
+                    
+                    videoPreview.addEventListener('ended', () => {
+                        this.showNotification('🎬 Video playback completed', 'success');
+                    });
+                }
+            }
+            
+            previewFullscreen(videoId) {
+                const video = document.getElementById('videoPreview');
+                if (video.requestFullscreen) {
+                    video.requestFullscreen();
+                } else if (video.webkitRequestFullscreen) {
+                    video.webkitRequestFullscreen();
+                }
+                this.showNotification('🔍 Fullscreen mode activated', 'success');
+            }
+            
+            shareVideo(videoId) {
+                if (navigator.share && this.currentVideo) {
+                    navigator.share({
+                        title: this.currentVideo.script?.title || 'AI Generated Video',
+                        text: 'Check out this video I created with AI Video Studio!',
+                        url: window.location.href
+                    });
+                } else {
+                    // Fallback: copy link to clipboard
+                    navigator.clipboard.writeText(`${window.location.origin}/video/${videoId}`);
+                    this.showNotification('📋 Video link copied to clipboard!', 'success');
+                }
             }
         }
 

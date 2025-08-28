@@ -1,0 +1,174 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Slideshow - 08330b7a-f30b-4f6a-8f70-86c8c5dd7b49</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .slideshow-container {
+            width: 360px;
+            height: 640px;
+            position: relative;
+            background: linear-gradient(45deg, #1a1a1a, #2d2d2d);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            padding: 40px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .slide.active {
+            opacity: 1;
+        }
+        .slide img {
+            max-width: 100%;
+            max-height: 60%;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .slide-content {
+            font-size: 18px;
+            line-height: 1.4;
+            color: #00D4FF;
+        }
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+        .control-btn {
+            background: rgba(0, 212, 255, 0.3);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .control-btn:hover {
+            background: rgba(0, 212, 255, 0.5);
+        }
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: #00D4FF;
+            width: 0%;
+            transition: width linear;
+        }
+    </style>
+</head>
+<body>
+    <div class="slideshow-container">
+        
+        <div class="slide active" data-duration="5000">
+            
+            <div class="slide-content">Welcome to our revolutionary productivity app</div>
+        </div>
+        
+        <div class="slide " data-duration="5000">
+            
+            <div class="slide-content">Experience seamless collaboration and increased efficiency</div>
+        </div>
+        
+        <div class="slide " data-duration="5000">
+            
+            <div class="slide-content">Join thousands of successful teams today</div>
+        </div>
+        
+        
+        <div class="controls">
+            <button class="control-btn" onclick="previousSlide()">◀ Prev</button>
+            <button class="control-btn" onclick="togglePlay()" id="playBtn">▶ Play</button>
+            <button class="control-btn" onclick="nextSlide()">Next ▶</button>
+        </div>
+        
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const progressBar = document.getElementById('progressBar');
+        const playBtn = document.getElementById('playBtn');
+        
+        let currentSlide = 0;
+        let isPlaying = false;
+        let slideInterval;
+        let progressInterval;
+        
+        function showSlide(index) {
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[index].classList.add('active');
+            currentSlide = index;
+        }
+        
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            showSlide(currentSlide);
+        }
+        
+        function previousSlide() {
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            showSlide(currentSlide);
+        }
+        
+        function togglePlay() {
+            if (isPlaying) {
+                clearInterval(slideInterval);
+                clearInterval(progressInterval);
+                playBtn.textContent = '▶ Play';
+                progressBar.style.width = '0%';
+            } else {
+                playSlideshow();
+                playBtn.textContent = '⏸ Pause';
+            }
+            isPlaying = !isPlaying;
+        }
+        
+        function playSlideshow() {
+            const duration = parseInt(slides[currentSlide].dataset.duration);
+            let progress = 0;
+            
+            progressBar.style.width = '0%';
+            progressBar.style.transition = `width ${duration}ms linear`;
+            progressBar.style.width = '100%';
+            
+            slideInterval = setTimeout(() => {
+                nextSlide();
+                if (isPlaying) playSlideshow();
+            }, duration);
+        }
+        
+        // Auto-start slideshow
+        setTimeout(() => togglePlay(), 1000);
+    </script>
+</body>
+</html>

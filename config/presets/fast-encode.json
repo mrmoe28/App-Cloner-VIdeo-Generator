@@ -1,0 +1,16 @@
+{
+  "name": "Fast Encoding",
+  "description": "Quick processing for previews",
+  "video": {
+    "codec": "libx264",
+    "preset": "veryfast",
+    "crf": 23,
+    "pixelFormat": "yuv420p"
+  },
+  "audio": {
+    "codec": "aac",
+    "bitrate": "128k",
+    "sampleRate": 44100
+  },
+  "container": "mp4"
+}

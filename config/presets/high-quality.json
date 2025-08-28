@@ -1,0 +1,16 @@
+{
+  "name": "High Quality",
+  "description": "Best quality for final output",
+  "video": {
+    "codec": "libx264",
+    "preset": "slow",
+    "crf": 18,
+    "pixelFormat": "yuv420p"
+  },
+  "audio": {
+    "codec": "aac",
+    "bitrate": "192k",
+    "sampleRate": 48000
+  },
+  "container": "mp4"
+}

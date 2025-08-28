@@ -1,0 +1,20 @@
+{
+  "name": "Web Optimized",
+  "description": "Small file size for web streaming",
+  "video": {
+    "codec": "libx264",
+    "preset": "fast",
+    "crf": 28,
+    "pixelFormat": "yuv420p"
+  },
+  "audio": {
+    "codec": "aac",
+    "bitrate": "96k",
+    "sampleRate": 44100
+  },
+  "container": "mp4",
+  "additionalOptions": [
+    "-movflags",
+    "+faststart"
+  ]
+}

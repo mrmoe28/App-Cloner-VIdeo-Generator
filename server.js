@@ -290,6 +290,53 @@ app.post('/api/video/process', async (req, res) => {
   }
 });
 
+// Video Generation with Images
+app.post('/api/video/generate', async (req, res) => {
+  try {
+    const { script, options = {}, userId } = req.body;
+    
+    if (!script) {
+      return res.status(400).json({ error: 'Script is required' });
+    }
+    
+    // Initialize services if not already done
+    if (!global.stockContentService) {
+      global.stockContentService = stockContent;
+    }
+    
+    if (!global.databaseService) {
+      global.databaseService = database;
+    }
+    
+    if (!global.videoGeneratorService) {
+      const { VideoGeneratorService } = require('./lib/video-generator');
+      global.videoGeneratorService = new VideoGeneratorService(
+        global.stockContentService,
+        global.databaseService
+      );
+    }
+    
+    // Generate video
+    const videoData = await global.videoGeneratorService.generateVideo({
+      script,
+      options: {
+        ...options,
+        userId: userId || 'default'
+      }
+    });
+    
+    res.json({ 
+      success: true, 
+      video: videoData,
+      message: 'Video generated successfully'
+    });
+    
+  } catch (error) {
+    console.error('Video generation error:', error);
+    res.status(500).json({ error: error.message || 'Failed to generate video' });
+  }
+});
+
 app.get('/api/video/status/:videoId', async (req, res) => {
   try {
     const { videoId } = req.params;
