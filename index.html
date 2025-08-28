@@ -531,6 +531,17 @@
                             <button class="btn" id="generateVideoBtn" disabled>🎬 Generate Video</button>
                             <button class="btn btn-secondary" id="downloadVideoBtn" disabled>💾 Download</button>
                         </div>
+
+                        <!-- Video Preview Section -->
+                        <div class="form-group" id="videoPreviewSection" style="display: none;">
+                            <label class="form-label">📺 Video Preview</label>
+                            <div class="video-preview-container" style="background: #f5f5f5; border-radius: 8px; padding: 20px; text-align: center;">
+                                <video id="videoPreview" controls style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                                    Your browser does not support the video tag.
+                                </video>
+                                <div id="videoInfo" style="margin-top: 10px; font-size: 14px; color: #666;"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Assets Tab Content -->
@@ -963,6 +974,8 @@
                     this.updateProgress(100);
                     this.showNotification('✅ Video generated successfully!', 'success');
                     
+                    // Show video preview with demo video
+                    this.showVideoPreview();
                     document.getElementById('downloadVideoBtn').disabled = false;
                     
                 } catch (error) {
@@ -1010,7 +1023,15 @@
                 }
 
                 try {
-                    const response = await fetch(`/api/stock/search?query=${encodeURIComponent(query)}&type=${type}&limit=12`);
+                    const response = await fetch('/api/stock/search', {
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            query: query,
+                            type: type,
+                            limit: 12
+                        })
+                    });
                     const data = await response.json();
                     
                     if (data.success) {
@@ -1110,6 +1131,68 @@
 
             sleep(ms) {
                 return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            showVideoPreview() {
+                // Show the video preview section
+                document.getElementById('videoPreviewSection').style.display = 'block';
+                
+                // Create a demo video blob (this would be replaced with actual generated video)
+                const canvas = document.createElement('canvas');
+                canvas.width = 640;
+                canvas.height = 360;
+                const ctx = canvas.getContext('2d');
+                
+                // Create a simple demo video frame
+                ctx.fillStyle = '#0066cc';
+                ctx.fillRect(0, 0, 640, 360);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '32px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('AI Generated Video', 320, 160);
+                ctx.font = '18px Arial';
+                ctx.fillText('Demo Preview', 320, 200);
+                ctx.fillText('🎬 Your video is ready!', 320, 240);
+                
+                // Convert canvas to blob and create video URL
+                canvas.toBlob((blob) => {
+                    // For demo purposes, we'll use a data URL
+                    const videoPreview = document.getElementById('videoPreview');
+                    const videoInfo = document.getElementById('videoInfo');
+                    
+                    // In a real implementation, this would be the actual video file
+                    const demoVideoUrl = 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMWVzZHMK';
+                    
+                    // Set up video info
+                    videoInfo.innerHTML = `
+                        <strong>Generated Video</strong><br>
+                        Duration: Demo video (15s) | Resolution: 640x360 | Format: MP4<br>
+                        <em>In production, this would show your actual generated video</em>
+                    `;
+                    
+                    // Show placeholder message since we can't create a real video in demo
+                    videoPreview.style.display = 'none';
+                    const placeholder = document.createElement('div');
+                    placeholder.style.cssText = `
+                        width: 100%; 
+                        height: 200px; 
+                        background: linear-gradient(45deg, #0066cc, #004499);
+                        display: flex; 
+                        align-items: center; 
+                        justify-content: center; 
+                        color: white; 
+                        font-size: 18px; 
+                        border-radius: 8px;
+                        flex-direction: column;
+                        gap: 10px;
+                    `;
+                    placeholder.innerHTML = `
+                        <div>🎬 Video Generated Successfully!</div>
+                        <div style="font-size: 14px; opacity: 0.8;">Click download to save your video</div>
+                    `;
+                    
+                    videoPreview.parentNode.insertBefore(placeholder, videoPreview);
+                });
             }
         }
 

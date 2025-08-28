@@ -194,7 +194,27 @@ app.post('/api/ai/improve-script', async (req, res) => {
     }
     
     if (!apiKey) {
-      return res.status(400).json({ error: 'No OpenAI API key available' });
+      // Return a demo response when no API key is available
+      const demoImprovedScript = `Demo Mode: Script Improvement
+
+📝 ORIGINAL SCRIPT (${script.length} characters):
+"${script.substring(0, 200)}${script.length > 200 ? '...' : ''}"
+
+✨ IMPROVED VERSION:
+This is a demo response. With an OpenAI API key, this would provide:
+- Enhanced hook and opening
+- Better pacing and structure  
+- Stronger call-to-action
+- Improved ${improvements.join(', ') || 'engagement, clarity, call-to-action, pacing'}
+
+🚀 Configure your OpenAI API key to get real AI-powered script improvements!`;
+      
+      return res.json({ 
+        success: true, 
+        script: demoImprovedScript,
+        demo: true,
+        message: 'Demo mode - Configure OpenAI API key for real improvements' 
+      });
     }
     
     // Initialize OpenAI
@@ -272,7 +292,37 @@ app.post('/api/ai/generate-scene-prompts', async (req, res) => {
     }
     
     if (!apiKey) {
-      return res.status(400).json({ error: 'No OpenAI API key available' });
+      // Return demo visual prompts when no API key is available
+      const demoPrompts = [
+        {
+          scene: 1,
+          description: "Wide shot of modern office workspace with natural lighting",
+          visual_elements: ["Clean desk setup", "Computer screen", "Coffee cup", "Professional atmosphere"],
+          duration: "3-5 seconds",
+          camera: "Static wide shot"
+        },
+        {
+          scene: 2, 
+          description: "Close-up of hands typing on keyboard with focus on productivity",
+          visual_elements: ["Keyboard close-up", "Fast typing motion", "Screen glow", "Focused energy"],
+          duration: "2-3 seconds",
+          camera: "Close-up with shallow depth of field"
+        },
+        {
+          scene: 3,
+          description: "Medium shot showing satisfied expression and achievement",
+          visual_elements: ["Confident smile", "Relaxed posture", "Success indicators", "Positive lighting"],
+          duration: "3-4 seconds", 
+          camera: "Medium shot at eye level"
+        }
+      ];
+      
+      return res.json({ 
+        success: true, 
+        prompts: demoPrompts,
+        demo: true,
+        message: 'Demo mode - Configure OpenAI API key for custom visual prompts based on your script' 
+      });
     }
     
     // Initialize OpenAI
